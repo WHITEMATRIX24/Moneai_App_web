@@ -13,7 +13,21 @@ import {
 |--------------------------------------------------------------------------
 */
 
+export function getTargetUserId(req) {
+  if (req.auth?.type === "user" && req.auth?.user?._id) {
+    return req.auth.user._id;
+  }
+  if (req.query?.userId) {
+    return req.query.userId;
+  }
+  return req.auth?.user?._id || null;
+}
+
 async function resolveUserId(req) {
+  if (req.auth?.type === "user" && req.auth?.user?._id) {
+    return req.auth.user._id;
+  }
+
   if (req.body?.userId && req.body.userId !== "000000000000000000000001") {
     return req.body.userId;
   }
@@ -38,7 +52,8 @@ async function resolveUserId(req) {
 
 export async function listBudgets(req, res) {
   try {
-    const budgets = await getAllBudgets();
+    const userId = getTargetUserId(req);
+    const budgets = await getAllBudgets(userId);
 
     return res.status(200).json({
       success: true,
@@ -62,7 +77,8 @@ export async function listBudgets(req, res) {
 
 export async function getBudget(req, res) {
   try {
-    const budget = await getBudgetById(req.params.id);
+    const userId = getTargetUserId(req);
+    const budget = await getBudgetById(req.params.id, userId);
 
     if (!budget) {
       return res.status(404).json({
@@ -121,7 +137,15 @@ export async function addBudget(req, res) {
 
 export async function editBudget(req, res) {
   try {
-    const budget = await updateBudget(req.params.id, req.body);
+    const userId = req.auth?.type === "user" ? req.auth.user._id : (req.body?.userId || req.query?.userId || null);
+    const budget = await updateBudget(req.params.id, req.body, userId);
+
+    if (!budget) {
+      return res.status(404).json({
+        success: false,
+        message: "Budget not found.",
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -153,7 +177,8 @@ export async function editBudget(req, res) {
 
 export async function removeBudget(req, res) {
   try {
-    const budget = await archiveBudget(req.params.id);
+    const userId = req.auth?.type === "user" ? req.auth.user._id : (req.query?.userId || null);
+    const budget = await archiveBudget(req.params.id, userId);
 
     if (!budget) {
       return res.status(404).json({

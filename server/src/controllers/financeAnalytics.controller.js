@@ -2,9 +2,20 @@ import {
   getFinanceAnalytics,
 } from "../services/financeAnalytics.service.js";
 
+export function getTargetUserId(req) {
+  if (req.auth?.type === "user" && req.auth?.user?._id) {
+    return req.auth.user._id;
+  }
+  if (req.query?.userId) {
+    return req.query.userId;
+  }
+  return req.auth?.user?._id || null;
+}
+
 export async function analytics(req, res) {
   try {
-    const data = await getFinanceAnalytics();
+    const userId = getTargetUserId(req);
+    const data = await getFinanceAnalytics(userId);
 
     res.status(200).json({
       success: true,

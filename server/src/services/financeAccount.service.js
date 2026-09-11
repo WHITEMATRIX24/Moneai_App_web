@@ -6,10 +6,11 @@ import FinanceAccount from "../models/FinanceAccount.js";
 |--------------------------------------------------------------------------
 */
 
-export async function getAllAccounts() {
-  return await FinanceAccount.find({
-    archived: false,
-  }).sort({
+export async function getAllAccounts(userId) {
+  const query = { archived: false };
+  if (userId) query.userId = userId;
+
+  return await FinanceAccount.find(query).sort({
     createdAt: -1,
   });
 }
@@ -20,8 +21,11 @@ export async function getAllAccounts() {
 |--------------------------------------------------------------------------
 */
 
-export async function getAccountById(id) {
-  return await FinanceAccount.findById(id);
+export async function getAccountById(id, userId) {
+  const query = { _id: id };
+  if (userId) query.userId = userId;
+
+  return await FinanceAccount.findOne(query);
 }
 
 /*
@@ -40,9 +44,12 @@ export async function createAccount(data) {
 |--------------------------------------------------------------------------
 */
 
-export async function updateAccount(id, data) {
-  return await FinanceAccount.findByIdAndUpdate(
-    id,
+export async function updateAccount(id, data, userId) {
+  const query = { _id: id };
+  if (userId) query.userId = userId;
+
+  return await FinanceAccount.findOneAndUpdate(
+    query,
     data,
     {
       new: true,
@@ -57,9 +64,12 @@ export async function updateAccount(id, data) {
 |--------------------------------------------------------------------------
 */
 
-export async function archiveAccount(id) {
-  return await FinanceAccount.findByIdAndUpdate(
-    id,
+export async function archiveAccount(id, userId) {
+  const query = { _id: id };
+  if (userId) query.userId = userId;
+
+  return await FinanceAccount.findOneAndUpdate(
+    query,
     {
       archived: true,
     },

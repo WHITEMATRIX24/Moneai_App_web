@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
+import { getStoredUser } from "../../services/auth.service.js";
 
-const EMPTY_FORM = {
-  userId: "000000000000000000000001",
-  category: "",
-  budgetAmount: "",
-  spentAmount: 0,
-  month: new Date().getMonth() + 1,
-  year: new Date().getFullYear(),
-};
+function getInitialForm() {
+  const user = getStoredUser();
+  return {
+    userId: user?._id || "000000000000000000000001",
+    category: "",
+    budgetAmount: "",
+    spentAmount: 0,
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+  };
+}
 
 export default function BudgetModal({
   open,
@@ -15,14 +19,14 @@ export default function BudgetModal({
   onSave,
   initialData,
 }) {
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(getInitialForm);
 
   useEffect(() => {
     if (open) {
       setForm(
         initialData
           ? { ...initialData }
-          : EMPTY_FORM
+          : getInitialForm()
       );
     }
   }, [open, initialData]);

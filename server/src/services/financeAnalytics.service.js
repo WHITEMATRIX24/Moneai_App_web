@@ -1,11 +1,14 @@
 import FinanceTransaction from "../models/FinanceTransaction.js";
 import FinanceAccount from "../models/FinanceAccount.js";
 
-export async function getFinanceAnalytics() {
+export async function getFinanceAnalytics(userId) {
 
-  const transactions = await FinanceTransaction.find();
+  const query = userId ? { userId } : {};
+
+  const transactions = await FinanceTransaction.find(query);
 
   const accounts = await FinanceAccount.find({
+    ...query,
     archived: false,
   });
 

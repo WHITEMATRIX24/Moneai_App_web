@@ -6,10 +6,14 @@ import FinanceGoal from "../models/FinanceGoal.js";
 |--------------------------------------------------------------------------
 */
 
-export async function getAllGoals() {
-  return await FinanceGoal.find({
+export async function getAllGoals(userId) {
+  const query = {
     archived: false,
-  }).sort({
+  };
+  if (userId) {
+    query.userId = userId;
+  }
+  return await FinanceGoal.find(query).sort({
     createdAt: -1,
   });
 }
@@ -20,8 +24,12 @@ export async function getAllGoals() {
 |--------------------------------------------------------------------------
 */
 
-export async function getGoalById(id) {
-  return await FinanceGoal.findById(id);
+export async function getGoalById(id, userId) {
+  const query = { _id: id };
+  if (userId) {
+    query.userId = userId;
+  }
+  return await FinanceGoal.findOne(query);
 }
 
 /*
@@ -146,11 +154,17 @@ export async function createGoal(data) {
 
 export async function updateGoal(
   id,
-  data
+  data,
+  userId
 ) {
 
+  const query = { _id: id };
+  if (userId) {
+    query.userId = userId;
+  }
+
   const existing =
-    await FinanceGoal.findById(id);
+    await FinanceGoal.findOne(query);
 
   if (!existing) {
     throw new Error(
@@ -241,12 +255,11 @@ export async function updateGoal(
   */
 
   const updatedGoal =
-    await FinanceGoal.findByIdAndUpdate(
-      id,
+    await FinanceGoal.findOneAndUpdate(
+      query,
 
       {
         userId:
-          data.userId ||
           existing.userId,
 
         goalName,
@@ -280,10 +293,15 @@ export async function updateGoal(
 |--------------------------------------------------------------------------
 */
 
-export async function archiveGoal(id) {
+export async function archiveGoal(id, userId) {
 
-  return await FinanceGoal.findByIdAndUpdate(
-    id,
+  const query = { _id: id };
+  if (userId) {
+    query.userId = userId;
+  }
+
+  return await FinanceGoal.findOneAndUpdate(
+    query,
 
     {
       archived: true,

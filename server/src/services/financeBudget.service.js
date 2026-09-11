@@ -7,28 +7,26 @@ import FinanceTransaction from "../models/FinanceTransaction.js";
 |--------------------------------------------------------------------------
 */
 
-async function calculateSpent(category, month, year) {
+async function calculateSpent(category, month, year, userId) {
 
   const startDate = new Date(year, month - 1, 1);
 
   const endDate = new Date(year, month, 1);
 
-  const transactions =
-    await FinanceTransaction.find({
+  const query = {
+    type: "Expense",
+    category,
+    transactionDate: {
+      $gte: startDate,
+      $lt: endDate,
+    },
+  };
 
-      type: "Expense",
+  if (userId) {
+    query.userId = userId;
+  }
 
-      category,
-
-      transactionDate: {
-
-        $gte: startDate,
-
-        $lt: endDate,
-
-      },
-
-    });
+  const transactions = await FinanceTransaction.find(query);
 
   return transactions.reduce(
 
@@ -48,14 +46,18 @@ async function calculateSpent(category, month, year) {
 |--------------------------------------------------------------------------
 */
 
-export async function getAllBudgets() {
+export async function getAllBudgets(userId) {
+
+  const query = {
+    archived: false,
+  };
+
+  if (userId) {
+    query.userId = userId;
+  }
 
   const budgets =
-    await FinanceBudget.find({
-
-      archived: false,
-
-    }).sort({
+    await FinanceBudget.find(query).sort({
 
       createdAt: -1,
 
@@ -72,7 +74,9 @@ export async function getAllBudgets() {
 
         budget.month,
 
-        budget.year
+        budget.year,
+
+        budget.userId || userId
 
       );
 
@@ -129,9 +133,14 @@ export async function getAllBudgets() {
 |--------------------------------------------------------------------------
 */
 
-export async function getBudgetById(id) {
+export async function getBudgetById(id, userId) {
 
-  return await FinanceBudget.findById(id);
+  const query = { _id: id };
+  if (userId) {
+    query.userId = userId;
+  }
+
+  return await FinanceBudget.findOne(query);
 
 }
 
@@ -208,7 +217,7 @@ export async function createBudget(data) {
 |--------------------------------------------------------------------------
 */
 
-export async function updateBudget(id, data) {
+export async function updateBudget(id, data, userId) {
 
   if (
 
@@ -226,9 +235,12 @@ export async function updateBudget(id, data) {
 
   }
 
-  return await FinanceBudget.findByIdAndUpdate(
+  const query = { _id: id };
+  if (userId) query.userId = userId;
 
-    id,
+  return await FinanceBudget.findOneAndUpdate(
+
+    query,
 
     {
 
@@ -254,11 +266,14 @@ export async function updateBudget(id, data) {
 |--------------------------------------------------------------------------
 */
 
-export async function archiveBudget(id) {
+export async function archiveBudget(id, userId) {
 
-  return await FinanceBudget.findByIdAndUpdate(
+  const query = { _id: id };
+  if (userId) query.userId = userId;
 
-    id,
+  return await FinanceBudget.findOneAndUpdate(
+
+    query,
 
     {
 

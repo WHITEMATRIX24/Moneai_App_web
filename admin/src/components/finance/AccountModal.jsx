@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
+import { getStoredUser } from "../../services/auth.service.js";
 
-const EMPTY_FORM = {
-  userId: "000000000000000000000001",
-  accountName: "",
-  accountType: "Bank",
-  institution: "",
-  balance: "",
-  currency: "INR",
-};
+function getInitialForm() {
+  const user = getStoredUser();
+  return {
+    userId: user?._id || "000000000000000000000001",
+    accountName: "",
+    accountType: "Bank",
+    institution: "",
+    balance: "",
+    currency: "INR",
+  };
+}
 
 export default function AccountModal({
   open,
@@ -15,11 +19,11 @@ export default function AccountModal({
   onSave,
   initialData,
 }) {
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(getInitialForm);
 
   useEffect(() => {
     if (open) {
-      setForm(initialData ? { ...initialData } : EMPTY_FORM);
+      setForm(initialData ? { ...initialData } : getInitialForm());
     }
   }, [open, initialData]);
 

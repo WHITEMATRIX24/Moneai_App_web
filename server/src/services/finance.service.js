@@ -145,8 +145,9 @@ async function findDuplicateTransaction(
 |--------------------------------------------------------------------------
 */
 
-export async function getAllTransactions() {
-  return await FinanceTransaction.find()
+export async function getAllTransactions(userId) {
+  const query = userId ? { userId } : {};
+  return await FinanceTransaction.find(query)
     .sort({
       transactionDate: -1,
     });
@@ -158,12 +159,14 @@ export async function getAllTransactions() {
 |--------------------------------------------------------------------------
 */
 
-export async function getFinanceSummary() {
+export async function getFinanceSummary(userId) {
+  const query = userId ? { userId } : {};
   const transactions =
-    await FinanceTransaction.find();
+    await FinanceTransaction.find(query);
 
   const accounts =
     await FinanceAccount.find({
+      ...query,
       archived: false,
     });
 
@@ -276,10 +279,14 @@ export async function addTransaction(
 
 export async function updateTransaction(
   id,
-  data
+  data,
+  userId
 ) {
+  const query = { _id: id };
+  if (userId) query.userId = userId;
+
   const existing =
-    await FinanceTransaction.findById(id);
+    await FinanceTransaction.findOne(query);
 
   if (!existing) {
     throw new Error(
@@ -290,6 +297,7 @@ export async function updateTransaction(
   const mergedData = {
     ...existing.toObject(),
     ...data,
+    userId: existing.userId,
   };
 
   const validatedData =
@@ -325,8 +333,8 @@ export async function updateTransaction(
     );
   }
 
-  return await FinanceTransaction.findByIdAndUpdate(
-    id,
+  return await FinanceTransaction.findOneAndUpdate(
+    query,
     {
       ...validatedData,
     },
@@ -344,10 +352,14 @@ export async function updateTransaction(
 */
 
 export async function deleteTransaction(
-  id
+  id,
+  userId
 ) {
-  return await FinanceTransaction.findByIdAndDelete(
-    id
+  const query = { _id: id };
+  if (userId) query.userId = userId;
+
+  return await FinanceTransaction.findOneAndDelete(
+    query
   );
 }
 

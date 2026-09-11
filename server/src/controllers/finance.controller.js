@@ -14,7 +14,21 @@ import {
 |--------------------------------------------------------------------------
 */
 
+export function getTargetUserId(req) {
+  if (req.auth?.type === "user" && req.auth?.user?._id) {
+    return req.auth.user._id;
+  }
+  if (req.query?.userId) {
+    return req.query.userId;
+  }
+  return req.auth?.user?._id || null;
+}
+
 export async function resolveUserId(req) {
+  if (req.auth?.type === "user" && req.auth?.user?._id) {
+    return req.auth.user._id;
+  }
+
   if (req.body?.userId && req.body.userId !== "000000000000000000000001") {
     return req.body.userId;
   }
@@ -39,8 +53,9 @@ export async function resolveUserId(req) {
 
 export async function listTransactions(req, res) {
   try {
+    const userId = getTargetUserId(req);
     const transactions =
-      await getAllTransactions();
+      await getAllTransactions(userId);
 
     return res.status(200).json({
       success: true,
@@ -65,8 +80,9 @@ export async function listTransactions(req, res) {
 
 export async function financeSummary(req, res) {
   try {
+    const userId = getTargetUserId(req);
     const summary =
-      await getFinanceSummary();
+      await getFinanceSummary(userId);
 
     return res.status(200).json({
       success: true,
@@ -131,10 +147,12 @@ export async function editTransaction(
   res
 ) {
   try {
+    const userId = req.auth?.type === "user" ? req.auth.user._id : (req.body?.userId || req.query?.userId || null);
     const transaction =
       await updateTransaction(
         req.params.id,
-        req.body
+        req.body,
+        userId
       );
 
     if (!transaction) {
@@ -177,9 +195,11 @@ export async function removeTransaction(
   res
 ) {
   try {
+    const userId = req.auth?.type === "user" ? req.auth.user._id : (req.query?.userId || null);
     const transaction =
       await deleteTransaction(
-        req.params.id
+        req.params.id,
+        userId
       );
 
     if (!transaction) {

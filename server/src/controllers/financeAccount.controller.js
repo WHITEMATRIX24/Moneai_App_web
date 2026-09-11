@@ -13,7 +13,21 @@ import {
 |--------------------------------------------------------------------------
 */
 
+export function getTargetUserId(req) {
+  if (req.auth?.type === "user" && req.auth?.user?._id) {
+    return req.auth.user._id;
+  }
+  if (req.query?.userId) {
+    return req.query.userId;
+  }
+  return req.auth?.user?._id || null;
+}
+
 async function resolveUserId(req) {
+  if (req.auth?.type === "user" && req.auth?.user?._id) {
+    return req.auth.user._id;
+  }
+
   if (req.body?.userId && req.body.userId !== "000000000000000000000001") {
     return req.body.userId;
   }
@@ -38,7 +52,8 @@ async function resolveUserId(req) {
 
 export async function listAccounts(req, res) {
   try {
-    const accounts = await getAllAccounts();
+    const userId = getTargetUserId(req);
+    const accounts = await getAllAccounts(userId);
 
     res.status(200).json({
       success: true,
@@ -62,7 +77,8 @@ export async function listAccounts(req, res) {
 
 export async function getAccount(req, res) {
   try {
-    const account = await getAccountById(req.params.id);
+    const userId = getTargetUserId(req);
+    const account = await getAccountById(req.params.id, userId);
 
     if (!account) {
       return res.status(404).json({
@@ -121,9 +137,11 @@ export async function addAccount(req, res) {
 
 export async function editAccount(req, res) {
   try {
+    const userId = req.auth?.type === "user" ? req.auth.user._id : (req.body?.userId || req.query?.userId || null);
     const account = await updateAccount(
       req.params.id,
-      req.body
+      req.body,
+      userId
     );
 
     if (!account) {
@@ -156,7 +174,8 @@ export async function editAccount(req, res) {
 
 export async function removeAccount(req, res) {
   try {
-    const account = await archiveAccount(req.params.id);
+    const userId = req.auth?.type === "user" ? req.auth.user._id : (req.query?.userId || null);
+    const account = await archiveAccount(req.params.id, userId);
 
     if (!account) {
       return res.status(404).json({

@@ -13,7 +13,21 @@ import {
 |--------------------------------------------------------------------------
 */
 
+export function getTargetUserId(req) {
+  if (req.auth?.type === "user" && req.auth?.user?._id) {
+    return req.auth.user._id;
+  }
+  if (req.query?.userId) {
+    return req.query.userId;
+  }
+  return req.auth?.user?._id || null;
+}
+
 async function resolveUserId(req) {
+  if (req.auth?.type === "user" && req.auth?.user?._id) {
+    return req.auth.user._id;
+  }
+
   if (req.body?.userId && req.body.userId !== "000000000000000000000001") {
     return req.body.userId;
   }
@@ -38,7 +52,8 @@ async function resolveUserId(req) {
 
 export async function listGoals(req, res) {
   try {
-    const goals = await getAllGoals();
+    const userId = getTargetUserId(req);
+    const goals = await getAllGoals(userId);
 
     return res.status(200).json({
       success: true,
@@ -62,7 +77,8 @@ export async function listGoals(req, res) {
 
 export async function getGoal(req, res) {
   try {
-    const goal = await getGoalById(req.params.id);
+    const userId = getTargetUserId(req);
+    const goal = await getGoalById(req.params.id, userId);
 
     if (!goal) {
       return res.status(404).json({
@@ -121,7 +137,15 @@ export async function addGoal(req, res) {
 
 export async function editGoal(req, res) {
   try {
-    const goal = await updateGoal(req.params.id, req.body);
+    const userId = req.auth?.type === "user" ? req.auth.user._id : (req.body?.userId || req.query?.userId || null);
+    const goal = await updateGoal(req.params.id, req.body, userId);
+
+    if (!goal) {
+      return res.status(404).json({
+        success: false,
+        message: "Goal not found.",
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -153,7 +177,8 @@ export async function editGoal(req, res) {
 
 export async function removeGoal(req, res) {
   try {
-    const goal = await archiveGoal(req.params.id);
+    const userId = req.auth?.type === "user" ? req.auth.user._id : (req.query?.userId || null);
+    const goal = await archiveGoal(req.params.id, userId);
 
     if (!goal) {
       return res.status(404).json({

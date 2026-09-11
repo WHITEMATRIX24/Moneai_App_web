@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
+import { getStoredUser } from "../../services/auth.service.js";
 
-const EMPTY_FORM = {
-  userId: "000000000000000000000001",
-  goalName: "",
-  targetAmount: "",
-  savedAmount: 0,
-  targetDate: new Date().toISOString().split("T")[0],
-  status: "In Progress",
-};
+function getInitialForm() {
+  const user = getStoredUser();
+  return {
+    userId: user?._id || "000000000000000000000001",
+    goalName: "",
+    targetAmount: "",
+    savedAmount: 0,
+    targetDate: new Date().toISOString().split("T")[0],
+    status: "In Progress",
+  };
+}
 
 export default function GoalModal({
   open,
@@ -15,7 +19,7 @@ export default function GoalModal({
   onSave,
   initialData,
 }) {
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(getInitialForm);
 
   useEffect(() => {
     if (!open) return;
@@ -25,7 +29,7 @@ export default function GoalModal({
         userId:
           initialData.userId?._id ||
           initialData.userId ||
-          EMPTY_FORM.userId,
+          getInitialForm().userId,
 
         goalName:
           initialData.goalName || "",
@@ -39,15 +43,13 @@ export default function GoalModal({
         targetDate:
           initialData.targetDate
             ? initialData.targetDate.split("T")[0]
-            : EMPTY_FORM.targetDate,
+            : getInitialForm().targetDate,
 
         status:
           initialData.status || "In Progress",
       });
     } else {
-      setForm({
-        ...EMPTY_FORM,
-      });
+      setForm(getInitialForm());
     }
   }, [open, initialData]);
 
