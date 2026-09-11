@@ -1,0 +1,66 @@
+/* ======================================
+   EMAIL VERIFICATION PAGE
+====================================== */
+
+.email-verification-page .login-right{
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+}
+
+.email-verification-page .login-form{
+
+    width:100%;
+    max-width:420px;
+    text-align:center;
+
+}
+
+.email-verification-page .login-form h2{
+
+    color:#f26b21;
+
+}
+
+.email-verification-page .subtitle{
+
+    margin:18px 0 30px;
+    color:#777;
+    line-height:1.6;
+
+}
+
+.email-verification-page .email-icon{
+
+    font-size:70px;
+    margin-bottom:30px;
+
+}
+
+.email-verification-page .login-btn{
+
+    width:100%;
+
+}
+
+.email-verification-page .signup-text{
+
+    margin-top:24px;
+
+}
+
+.email-verification-page .signup-text a{
+
+    color:#f26b21;
+    font-weight:600;
+    text-decoration:none;
+
+}
+
+.email-verification-page .signup-text a:hover{
+
+    text-decoration:underline;
+
+}

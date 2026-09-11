@@ -1,0 +1,485 @@
+/* =========================================================
+   VITAL SIGNS DETAIL PAGE
+========================================================= */
+
+.health-vitals-page {
+  width: 100%;
+}
+
+
+/* Back button */
+
+.health-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-bottom: 14px;
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  color: #b65d20;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.health-back-btn:hover {
+  color: #ff6500;
+}
+
+
+/* Detail grid */
+
+.health-vitals-detail-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 14px;
+
+  padding: 18px;
+}
+
+
+/* Vital card */
+
+.health-vital-detail-card {
+  min-width: 0;
+
+  padding: 18px;
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #fffaf5 100%
+    );
+
+  border: 1px solid rgba(110, 90, 65, 0.11);
+
+  box-shadow:
+    0 5px 15px rgba(60, 40, 20, 0.035);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.health-vital-detail-card:hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(255, 101, 0, 0.24);
+
+  box-shadow:
+    0 11px 25px rgba(60, 40, 20, 0.08);
+}
+
+
+/* Top */
+
+.health-vital-detail-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 14px;
+}
+
+
+.health-vital-detail-card__icon {
+  width: 43px;
+  height: 43px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 12px;
+
+  background: #fff0e5;
+
+  color: #ff6500;
+
+  border: 1px solid rgba(255, 101, 0, 0.16);
+}
+
+
+.health-vital-history-btn {
+  width: 32px;
+  height: 32px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  border: 1px solid rgba(110, 90, 65, 0.12);
+
+  color: #8b9aad;
+
+  cursor: pointer;
+}
+
+.health-vital-history-btn:hover {
+  color: #ff6500;
+
+  border-color: rgba(255, 101, 0, 0.20);
+}
+
+
+/* Content */
+
+.health-vital-detail-card__content h3 {
+  margin: 0 0 6px;
+
+  color: #19334f;
+
+  font-size: 15px;
+  font-weight: 850;
+}
+
+
+.health-vital-detail-card__content p {
+  margin: 0;
+
+  color: #8797aa;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* Reading */
+
+.health-vital-detail-card__reading {
+  margin-top: 17px;
+  padding-top: 14px;
+
+  border-top: 1px solid rgba(110, 90, 65, 0.08);
+}
+
+
+.health-vital-detail-card__reading > div {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+
+.health-vital-detail-card__reading strong {
+  color: #19334f;
+
+  font-size: 27px;
+  line-height: 1;
+
+  font-weight: 850;
+}
+
+
+.health-vital-detail-card__reading span {
+  color: #8d9aab;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+
+.health-vital-detail-card__reading small {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #a2968a;
+
+  font-size: 10px;
+}
+
+
+/* Add button */
+
+.health-vital-add-btn {
+  width: 100%;
+
+  min-height: 40px;
+
+  margin-top: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border-radius: 10px;
+
+  background: #fff0e5;
+
+  border: 1px solid rgba(255, 101, 0, 0.15);
+
+  color: #e35d0b;
+
+  font-family: inherit;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.health-vital-add-btn:hover {
+  background: #ff6500;
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.health-modal-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(25, 30, 35, 0.38);
+
+  backdrop-filter: blur(4px);
+}
+
+
+.health-modal {
+  width: min(470px, 100%);
+
+  overflow: hidden;
+
+  border-radius: 20px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.18);
+}
+
+
+/* Modal header */
+
+.health-modal__header {
+  padding: 20px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  border-bottom: 1px solid rgba(110, 90, 65, 0.09);
+}
+
+
+.health-modal__header > div > span {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #ff6500;
+
+  font-size: 9px;
+  font-weight: 850;
+
+  letter-spacing: 0.07em;
+}
+
+
+.health-modal__header h2 {
+  margin: 0;
+
+  color: #19334f;
+
+  font-size: 20px;
+  font-weight: 850;
+}
+
+
+.health-modal-close {
+  width: 32px;
+  height: 32px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #f7f4f1;
+
+  color: #7f8995;
+
+  font-size: 20px;
+
+  cursor: pointer;
+}
+
+
+/* Modal body */
+
+.health-modal__body {
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+
+.health-modal__body label {
+  margin-bottom: 7px;
+
+  color: #4d627a;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+.health-modal__body input {
+  width: 100%;
+
+  min-height: 43px;
+
+  margin-bottom: 14px;
+  padding: 0 12px;
+
+  border: 1px solid rgba(110, 90, 65, 0.15);
+
+  border-radius: 10px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #19334f;
+
+  font-family: inherit;
+
+  font-size: 12px;
+}
+
+
+.health-modal__body input:focus {
+  border-color: rgba(255, 101, 0, 0.50);
+
+  box-shadow:
+    0 0 0 3px rgba(255, 101, 0, 0.08);
+}
+
+
+.health-modal__body small {
+  margin-top: -9px;
+  margin-bottom: 14px;
+
+  color: #9aa5b1;
+
+  font-size: 9px;
+}
+
+
+/* Modal footer */
+
+.health-modal__footer {
+  padding: 15px 20px;
+
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 9px;
+
+  border-top: 1px solid rgba(110, 90, 65, 0.09);
+
+  background: #fffaf5;
+}
+
+
+.health-modal-cancel,
+.health-modal-save {
+  min-height: 40px;
+
+  padding: 0 16px;
+
+  border-radius: 10px;
+
+  font-family: inherit;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+
+.health-modal-cancel {
+  background: #ffffff;
+
+  border: 1px solid rgba(110, 90, 65, 0.14);
+
+  color: #65788e;
+}
+
+
+.health-modal-save {
+  background: #ff6500;
+
+  border: 1px solid #ff6500;
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .health-vitals-detail-grid {
+    grid-template-columns: 1fr;
+
+    padding: 13px;
+  }
+
+}
+
+
+@media (max-width: 480px) {
+
+  .health-modal-overlay {
+    padding: 12px;
+  }
+
+  .health-modal__header,
+  .health-modal__body {
+    padding: 16px;
+  }
+
+  .health-modal__footer {
+    padding: 13px 16px;
+  }
+
+}

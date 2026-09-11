@@ -1,0 +1,1 @@
+import mongoose from "mongoose";const schema=new mongoose.Schema({key:{type:String,required:true,unique:true},enabled:{type:Boolean,default:false},description:{type:String,default:""}},{timestamps:true});export default mongoose.model("FeatureFlag",schema);

@@ -1,0 +1,380 @@
+/* ==========================================================
+   MONE AI - SIGNUP PAGE
+========================================================== */
+
+
+/* ===============================
+   RIGHT PANEL
+================================ */
+
+.signup-page .login-right{
+
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+
+    padding:45px 70px;
+
+    overflow-y:auto;
+
+}
+
+
+/* ===============================
+   SIGNUP CONTAINER
+================================ */
+
+.signup-container{
+
+    width:100%;
+    max-width:480px;
+
+}
+
+
+/* ===============================
+   FORM
+================================ */
+
+.signup-page .login-form{
+
+    width:100%;
+
+}
+
+
+/* ===============================
+   HEADING
+================================ */
+
+.signup-page .login-form h2{
+
+    font-size:42px;
+
+    font-weight:700;
+
+    color:#f26b21;
+
+    margin-bottom:8px;
+
+    letter-spacing:-0.5px;
+
+}
+
+
+/* ===============================
+   SUBTITLE
+================================ */
+
+.signup-page .subtitle{
+
+    color:#888;
+
+    font-size:16px;
+
+    margin-bottom:28px;
+
+    line-height:1.5;
+
+}
+
+
+/* ===============================
+   FIELD SPACING
+================================ */
+
+.signup-page .field{
+
+    margin-bottom:20px;
+
+}
+
+
+.signup-page .field label{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+}
+
+
+/* ===============================
+   PASSWORD WRAPPER
+================================ */
+
+.signup-page .password-wrapper{
+
+    position:relative;
+
+    display:flex;
+
+    align-items:center;
+
+}
+
+
+/* ===============================
+   PASSWORD MATCH
+================================ */
+
+.password-match{
+
+    margin-top:-8px;
+
+    margin-bottom:20px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+}
+
+.password-match.success{
+
+    color:#28a745;
+
+}
+
+.password-match.error{
+
+    color:#dc3545;
+
+}
+/* ===============================
+   CREATE ACCOUNT BUTTON
+================================ */
+
+.signup-page .login-btn{
+
+    width:100%;
+
+    height:54px;
+
+    margin-top:8px;
+
+}
+
+
+/* ===============================
+   DIVIDER
+================================ */
+
+.divider{
+
+    display:flex;
+
+    align-items:center;
+
+    margin:28px 0;
+
+    color:#9a9a9a;
+
+    font-size:14px;
+
+}
+
+.divider::before,
+.divider::after{
+
+    content:"";
+
+    flex:1;
+
+    height:1px;
+
+    background:#dddddd;
+
+}
+
+.divider span{
+
+    margin:0 16px;
+
+    font-weight:600;
+
+}
+
+
+/* ===============================
+   GOOGLE BUTTON
+================================ */
+
+.google-btn{
+
+    width:100%;
+
+    height:54px;
+
+    border:1px solid #d9d9d9;
+
+    border-radius:14px;
+
+    background:#ffffff;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:12px;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+    font-weight:600;
+
+    transition:0.25s;
+
+}
+
+.google-btn:hover{
+
+    border-color:#f26b21;
+
+    box-shadow:0 8px 18px rgba(0,0,0,.06);
+
+}
+
+.google-btn img{
+
+    width:22px;
+
+    height:22px;
+
+}
+
+
+/* ===============================
+   BOTTOM LOGIN LINK
+================================ */
+
+.signup-text{
+
+    margin-top:24px;
+
+    text-align:center;
+
+    color:#777;
+
+    font-size:15px;
+
+}
+
+.signup-text a{
+
+    color:#f26b21;
+
+    font-weight:600;
+
+    text-decoration:none;
+
+}
+
+.signup-text a:hover{
+
+    text-decoration:underline;
+
+}
+
+
+/* ===============================
+   RESPONSIVE
+================================ */
+
+@media (max-width:1024px){
+
+    .signup-page .login-right{
+
+        padding:35px 45px;
+
+    }
+
+    .signup-container{
+
+        max-width:440px;
+
+    }
+
+}
+
+@media (max-width:768px){
+
+    .signup-page .login-right{
+
+        padding:30px;
+
+        align-items:center;
+
+    }
+
+    .signup-container{
+
+        max-width:100%;
+
+    }
+
+}
+
+@media (max-width:600px){
+
+    .signup-page .login-right{
+
+        padding:24px;
+
+    }
+
+    .signup-page .login-form h2{
+
+        font-size:34px;
+
+    }
+
+    .signup-page .subtitle{
+
+        font-size:15px;
+
+    }
+
+}
+
+
+/* ===============================
+   SMALL POLISH
+================================ */
+
+.signup-page .login-form > *:first-child{
+
+    margin-top:0;
+
+}
+
+.signup-page .field:last-of-type{
+
+    margin-bottom:16px;
+
+}
+
+.signup-page .login-btn{
+
+    margin-bottom:22px;
+
+}
+
+.google-btn{
+
+    margin-top:0;
+
+}
+
+.signup-text{
+
+    padding-bottom:10px;
+
+}

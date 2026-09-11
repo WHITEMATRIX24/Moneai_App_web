@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>MONE AI Admin</title>
+    <script>
+      (function () {
+        try {
+          var mode = localStorage.getItem("mone_theme_mode");
+          if (mode === "dark") {
+            document.documentElement.classList.add("dark-mode");
+          }
+          var color = localStorage.getItem("mone_theme_color");
+          if (color) {
+            document.documentElement.style.setProperty("--primary-color", color);
+            document.documentElement.style.setProperty("--accent", color);
+          }
+          var font = localStorage.getItem("mone_font_size");
+          if (font) {
+            document.documentElement.style.setProperty("--base-font-size", font + "px");
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

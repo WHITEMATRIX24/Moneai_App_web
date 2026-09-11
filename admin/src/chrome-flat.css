@@ -1,0 +1,159 @@
+/* =========================================================
+   Flattened chrome — loaded last so page CSS can't undo it
+   Cards: border only · Buttons: no lift/shadow · Badges: soft square
+========================================================= */
+
+:root {
+  --shadow: none;
+  --btn-primary-shadow: none;
+  --btn-primary-shadow-hv: none;
+  --btn-secondary-shadow: none;
+  --btn-transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  --dash-shadow: none;
+  --dash-shadow-hover: none;
+  --nt-shadow: none;
+  --todo-shadow: none;
+}
+
+/* ---- Cards / panels ---- */
+.card,
+.dashboard-stat-card,
+.dashboard-panel,
+.todo-card,
+.todo-panel,
+.notifications-card,
+.notification-stats-panel,
+.summary-card,
+.user-summary-card,
+.settings-summary-card,
+.users-table-card,
+.plans-card,
+.medicine-card,
+.calendar-panel,
+.ai-panel,
+.subscription-card {
+  box-shadow: none !important;
+}
+
+.card,
+.dashboard-stat-card,
+.todo-card,
+.notifications-card,
+.notification-stats-panel,
+.summary-card,
+.user-summary-card,
+.settings-summary-card {
+  border-radius: 10px !important;
+}
+
+.dashboard-stat-card:hover,
+.summary-card:hover,
+.summary-card.active,
+.user-summary-card:hover,
+.settings-summary-card:hover,
+.todo-card:hover,
+.medicine-card:hover,
+.plans-card:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ---- Buttons: no float ---- */
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.dashboard-refresh-btn,
+.create-notification-btn,
+.notification-refresh-btn,
+.modal-save-btn,
+.modal-cancel-btn,
+.login button,
+.small,
+.users-page button,
+.action-btn {
+  box-shadow: none !important;
+}
+
+.btn-primary:hover:not(:disabled),
+.btn-secondary:hover:not(:disabled),
+.btn-danger:hover:not(:disabled),
+.dashboard-refresh-btn:hover:not(:disabled),
+.create-notification-btn:hover:not(:disabled),
+.notification-refresh-btn:hover:not(:disabled),
+.modal-save-btn:hover:not(:disabled),
+.login button:hover,
+.small:hover:not(:disabled),
+.action-btn:hover:not(:disabled) {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.create-notification-btn,
+.dashboard-refresh-btn,
+.modal-save-btn {
+  border-radius: 8px !important;
+}
+
+/* ---- Badges: quiet chips, not pills ---- */
+.status,
+.status-badge,
+.audience-badge,
+.user-status-badge,
+.plan-badge,
+.notification-tab.active,
+.user-notif-chip,
+.filter-tab.active {
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+}
+
+.status-badge,
+.user-status-badge,
+.audience-badge,
+.status {
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+}
+
+.dashboard-stat-card__badge,
+.dashboard-eyebrow,
+.notifications-eyebrow,
+.todo-eyebrow,
+.user-details-eyebrow,
+.settings-eyebrow {
+  border-radius: 6px !important;
+}
+
+/* Soften decorative icon tiles */
+.icon-tile,
+.dashboard-stat-card__icon,
+.summary-icon,
+.notification-icon,
+.history-icon,
+.tips-icon,
+.empty-icon {
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+/* Header bell: no lift */
+.header-bell:hover {
+  transform: none !important;
+}
+
+.header-bell__badge,
+.notif-dropdown__count {
+  border-radius: 6px !important;
+}
+
+.notif-dropdown {
+  box-shadow: 0 8px 24px rgba(40, 48, 60, 0.1) !important;
+  border-radius: 10px !important;
+}
+
+/* Modals: flatter */
+.notification-modal,
+.login form {
+  box-shadow: 0 12px 40px rgba(40, 48, 60, 0.12) !important;
+  border-radius: 12px !important;
+}

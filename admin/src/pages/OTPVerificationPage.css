@@ -1,0 +1,81 @@
+/* ======================================
+   OTP VERIFICATION PAGE
+====================================== */
+
+.otp-container{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    gap:12px;
+
+    margin:30px 0;
+
+}
+
+.otp-input{
+
+    width:55px;
+
+    height:60px;
+
+    border:1px solid #d9d9d9;
+
+    border-radius:12px;
+
+    text-align:center;
+
+    font-size:22px;
+
+    font-weight:600;
+
+    outline:none;
+
+    transition:.25s;
+
+}
+
+.otp-input:focus{
+
+    border-color:#f26b21;
+
+    box-shadow:0 0 0 4px rgba(242,107,33,.15);
+
+}
+
+.resend-text{
+
+    margin-top:20px;
+
+    text-align:center;
+
+    color:#777;
+
+    font-size:15px;
+
+}
+
+.resend-btn{
+
+    background:none;
+
+    border:none;
+
+    color:#f26b21;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    margin-left:6px;
+
+    font-size:15px;
+
+}
+
+.resend-btn:hover{
+
+    text-decoration:underline;
+
+}

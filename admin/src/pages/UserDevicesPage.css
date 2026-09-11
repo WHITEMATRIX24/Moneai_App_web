@@ -1,0 +1,302 @@
+/* === USER DEVICES PAGE === */
+/* =====================================
+   DEVICES
+===================================== */
+
+.back-btn {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-bottom: 18px;
+
+  padding: 9px 14px;
+
+  background: white;
+
+  border: 1px solid #ddd;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  border-color: var(--primary-color);
+  color:var(--primary-color);
+}
+
+.devices-grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 18px;
+}
+
+.device-card {
+  background: white;
+
+  border: 1px solid #e5e5e5;
+
+  border-radius: 14px;
+
+  padding: 20px;
+
+  transition: all 0.25s ease;
+}
+
+.device-card:hover {
+  transform: translateY(-3px);
+
+  border-color: var(--primary-color);
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+}
+
+.device-top {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+}
+
+.device-icon {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: var(--primary-bg-soft);
+
+  color: var(--primary-color);
+
+  font-size: 22px;
+}
+
+.device-card h3 {
+  margin: 18px 0 12px;
+
+  color: #273952;
+}
+
+.device-info p {
+  margin: 7px 0;
+
+  color: #777;
+
+  font-size: 13px;
+}
+
+.device-info strong {
+  color: #444;
+}
+
+.revoke-btn {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  margin-top: 18px;
+
+  padding: 10px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #fff0f0;
+
+  color: #c52c36;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.revoke-btn:hover {
+  background: #fde0e0;
+}
+
+/* =====================================
+   ACTIVITY
+===================================== */
+
+.activity-card {
+  padding: 25px;
+}
+
+.activity-timeline {
+  position: relative;
+}
+
+.activity-item {
+  display: flex;
+
+  gap: 15px;
+
+  padding-bottom: 25px;
+
+  position: relative;
+}
+
+.activity-item:last-child {
+  padding-bottom: 0;
+}
+
+.activity-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: var(--primary-bg-soft);
+
+  color: var(--primary-color);
+}
+
+.activity-content h3 {
+  margin: 0 0 5px;
+
+  font-size: 15px;
+
+  color: #273952;
+}
+
+.activity-content p {
+  margin: 0 0 5px;
+
+  font-size: 13px;
+
+  color: #777;
+}
+
+.activity-content span {
+  font-size: 11px;
+
+  color: #999;
+}
+
+/* =====================================
+   RESPONSIVE
+===================================== */
+
+@media (max-width: 1000px) {
+
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .devices-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+@media (max-width: 700px) {
+
+  .stats-container {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .export-btn {
+    margin-left: 0;
+    justify-content: center;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .devices-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+/* === DARK MODE === */
+html.dark-mode .device-icon,
+body.dark-mode .device-icon,
+html.dark-mode .activity-icon,
+body.dark-mode .activity-icon {
+  background: #151515 !important;
+  color: var(--primary-color) !important;
+}
+
+html.dark-mode .plan-free,
+body.dark-mode .plan-free {
+  background: #161616 !important;
+  color: #aaaaaa !important;
+}
+
+html.dark-mode .plan-premium,
+body.dark-mode .plan-premium {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+}
+
+html.dark-mode .plan-enterprise,
+body.dark-mode .plan-enterprise {
+  background: rgba(168, 85, 247, 0.15) !important;
+  color: #c084fc !important;
+}
+
+html.dark-mode .status-suspended,
+body.dark-mode .status-suspended {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+}
+
+html.dark-mode .status-inactive,
+body.dark-mode .status-inactive {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+}
+
+html.dark-mode .view-btn,
+body.dark-mode .view-btn {
+  background: #111111 !important;
+  border-color: #262626 !important;
+  color: #ffffff !important;
+}
+
+html.dark-mode .view-btn:hover,
+body.dark-mode .view-btn:hover {
+  background: #1e1e1e !important;
+  color: var(--primary-color) !important;
+}
+

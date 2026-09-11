@@ -1,0 +1,1 @@
+import express from "express";import {protect} from "../middleware/auth.middleware.js";import {listHealthMetrics,createHealthMetric} from "../controllers/health.controller.js";const r=express.Router();r.use(protect);r.get("/metrics",listHealthMetrics);r.post("/metrics",createHealthMetric);export default r;

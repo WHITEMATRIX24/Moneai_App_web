@@ -1,0 +1,1 @@
+import express from "express";import {protect,allowRoles} from "../middleware/auth.middleware.js";import {getMySubscription,listSubscriptions} from "../controllers/subscription.controller.js";const r=express.Router();r.use(protect);r.get("/me",getMySubscription);r.get("/",allowRoles("SUPER_ADMIN","ADMIN","SUPPORT","ANALYST"),listSubscriptions);export default r;
