@@ -26,6 +26,13 @@ import {
 } from "../controllers/ai.controller.js";
 
 import {
+  getAISummary,
+  getAIUsageByDay,
+  getAIFeatureAnalytics,
+  getAIModelAnalytics,
+} from "../controllers/admin.ai.controller.js";
+
+import {
   adminGetConfig,
   upsertConfig,
   upsertFeatureFlag,
@@ -159,6 +166,18 @@ r.get(
   "/ai/users",
   listAIUsers
 );
+
+// ==============================
+// AI ANALYTICS (merged in from the moneai-personalization-bugfixes
+// branch's admin.ai.routes.js — additive endpoints, kept separate from
+// the /ai/usage, /ai/errors, /ai/users routes above so the existing
+// admin.service.js calls keep working unchanged)
+// ==============================
+
+r.get("/ai/summary", getAISummary);
+r.get("/ai/usage-by-day", getAIUsageByDay);
+r.get("/ai/features", getAIFeatureAnalytics);
+r.get("/ai/models", getAIModelAnalytics);
 
 // ==============================
 // APP CONFIG

@@ -49,7 +49,7 @@ import MedicinesPage from "./pages/MedicinesPage.jsx";
 import CalendarPage from "./pages/CalendarPage.jsx";
 import UserWidgetsPage from "./pages/UserWidgetsPage.jsx";
 import SubscriptionPage from "./pages/SubscriptionPage.jsx";
-import AIPage from "./pages/AIPage.jsx";
+import AiChatPage from "./pages/AiChatPage.jsx";
 
 // ADMIN MODULES
 import UsersPage from "./pages/UsersPage.jsx";
@@ -182,7 +182,7 @@ export default function App() {
 
             {/* ── AI MODULE ────────────────────────── */}
 
-            <Route path="/ai" element={<AIPage />} />
+            <Route path="/ai" element={<AiChatPage />} />
 
             {/* ── WIDGETS ──────────────────────────── */}
 

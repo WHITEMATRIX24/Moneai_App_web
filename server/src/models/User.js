@@ -49,6 +49,23 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    // ==============================
+    // AI PERSONALIZATION CONSENT
+    // ==============================
+    // Gates ALL of AIUserMemory — both facts the user explicitly asks
+    // the AI to remember (remember_preference) and facts the AI infers
+    // from behavior (aiInference.service.js, source: "inferred").
+    // Captured at signup (default false) and changeable anytime from
+    // Settings. `consentVersion` lets a future change to what gets
+    // inferred re-prompt only users who consented under an older
+    // version, instead of assuming old consent covers new behavior.
+    // Read/written by services/ai/aiConsent.service.js — do not remove.
+    aiPersonalization: {
+      consent: { type: Boolean, default: false },
+      consentedAt: { type: Date, default: null },
+      consentVersion: { type: String, default: null },
+    },
   },
   {
     timestamps: true,

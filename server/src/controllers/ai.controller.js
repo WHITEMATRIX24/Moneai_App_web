@@ -1,4 +1,24 @@
 import AIUsage from "../models/AIUsage.js";
+import { recordUsage, recordFailure } from "../services/ai/aiUsage.service.js";
+import {
+  getPersonalizationConsent,
+  setPersonalizationConsent,
+} from "../services/ai/aiConsent.service.js";
+import { list as listMemory, forget as forgetMemory } from "../services/ai/aiMemory.service.js";
+import { generateInsightsForUser, dismissInsight } from "../services/ai/aiInsight.service.js";
+import {
+  sendMessage,
+  sendMessageWithTools,
+  confirmMessage,
+  createConversation,
+  listConversations,
+  getConversationWithMessages,
+  renameConversation,
+  deleteConversation,
+  sendConversationMessage,
+  confirmConversationMessage,
+} from "../services/ai/ai.service.js";
+import { streamMessage, streamConversationMessage } from "../services/ai/aiStreaming.service.js";
 
 /**
  * List raw AI usage entries (admin gets all, user gets own)
@@ -466,3 +486,404 @@ export async function listAIUsers(req, res) {
   }
 }
 
+// ============================================================
+// Conversational AI, personalization, memory & insights
+// (merged in from the moneai-personalization-bugfixes branch)
+// ============================================================
+
+export async function createConversationHandler(req, res) {
+  const conversation = await createConversation(req.auth.user._id, req.body?.title);
+  res.status(201).json({ success: true, conversation: { id: conversation._id, title: conversation.title } });
+}
+
+/** GET /api/v1/ai/conversations?page=&limit=&search= */
+export async function listConversationsHandler(req, res) {
+  const { page, limit, search } = req.query;
+  const result = await listConversations(req.auth.user._id, { page, limit, search });
+  res.json({
+    success: true,
+    conversations: result.conversations.map((c) => ({
+      id: c._id,
+      title: c.title,
+      status: c.status,
+      lastMessageAt: c.lastMessageAt,
+      metadata: c.metadata,
+    })),
+    total: result.total,
+    page: result.page,
+    limit: result.limit,
+  });
+}
+
+/** GET /api/v1/ai/conversations/:conversationId */
+export async function getConversationHandler(req, res) {
+  const result = await getConversationWithMessages(req.auth.user._id, req.params.conversationId);
+  if (!result) return res.status(404).json({ success: false, message: "Conversation not found" });
+
+  res.json({
+    success: true,
+    conversation: {
+      id: result.conversation._id,
+      title: result.conversation.title,
+      status: result.conversation.status,
+      lastMessageAt: result.conversation.lastMessageAt,
+    },
+    messages: result.messages.map((m) => ({
+      id: m._id,
+      role: m.role,
+      content: m.content,
+      status: m.status,
+      toolCalls: m.toolCalls,
+      createdAt: m.createdAt,
+    })),
+  });
+}
+
+/** PATCH /api/v1/ai/conversations/:conversationId — Body: { "title": "..." } */
+export async function renameConversationHandler(req, res) {
+  const { title } = req.body;
+  if (!title) return res.status(400).json({ success: false, message: "title is required" });
+
+  const conversation = await renameConversation(req.auth.user._id, req.params.conversationId, title);
+  if (!conversation) return res.status(404).json({ success: false, message: "Conversation not found" });
+
+  res.json({ success: true, conversation: { id: conversation._id, title: conversation.title } });
+}
+
+/** DELETE /api/v1/ai/conversations/:conversationId — soft delete */
+export async function deleteConversationHandler(req, res) {
+  const conversation = await deleteConversation(req.auth.user._id, req.params.conversationId);
+  if (!conversation) return res.status(404).json({ success: false, message: "Conversation not found" });
+
+  res.json({ success: true, message: "Conversation deleted" });
+}
+
+/**
+ * POST /api/v1/ai/conversations/:conversationId/messages
+ * Body: { "message": "..." }
+ * If the model requests a write action, reply includes pendingAction
+ * instead of a reply — client shows confirm/cancel, then POSTs the
+ * whole pendingAction to /conversations/:conversationId/confirm.
+ */
+export async function sendConversationMessageHandler(req, res) {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ success: false, message: "message is required" });
+
+  try {
+    const result = await sendConversationMessage(req.auth.user._id, req.params.conversationId, message);
+
+    if (result.pendingAction) {
+      return res.json({ success: true, data: { reply: null, pendingAction: result.pendingAction, model: result.model } });
+    }
+
+    await recordUsage({
+      userId: req.auth.user._id,
+      model: result.model,
+      provider: result.provider,
+      requestType: result.toolUsed ? "CHAT_TOOL" : "CHAT",
+      usage: result.usage,
+      latencyMs: result.latencyMs || 0,
+    });
+
+    res.json({
+      success: true,
+      data: { reply: result.text, model: result.model, usage: result.usage, toolUsed: result.toolUsed },
+    });
+  } catch (err) {
+    console.error("AI CONVERSATION MESSAGE ERROR:", err);
+    await recordFailure(req.auth.user._id, "CHAT_TOOL", "AI_PROVIDER_ERROR");
+    const status = err.message === "Conversation not found" ? 404 : 502;
+    res.status(status).json({ success: false, message: err.message || "AI provider unavailable", code: "AI_PROVIDER_ERROR" });
+  }
+}
+
+/**
+ * POST /api/v1/ai/conversations/:conversationId/confirm
+ * Body: { "pendingAction": <exactly what the messages endpoint returned> }
+ */
+export async function confirmConversationMessageHandler(req, res) {
+  const { pendingAction } = req.body;
+  if (!pendingAction || !pendingAction.call) {
+    return res.status(400).json({ success: false, message: "pendingAction is required" });
+  }
+
+  try {
+    const result = await confirmConversationMessage(req.auth.user._id, req.params.conversationId, pendingAction);
+
+    await recordUsage({
+      userId: req.auth.user._id,
+      model: result.model,
+      provider: result.provider,
+      requestType: "CHAT_TOOL_CONFIRMED",
+      usage: result.usage,
+      latencyMs: result.latencyMs || 0,
+    });
+
+    res.json({ success: true, data: { reply: result.text, model: result.model, usage: result.usage, toolUsed: result.toolUsed } });
+  } catch (err) {
+    console.error("AI CONVERSATION CONFIRM ERROR:", err);
+    await recordFailure(req.auth.user._id, "CHAT_TOOL_CONFIRMED", "AI_PROVIDER_ERROR");
+    const status = err.message === "Conversation not found" ? 404 : 502;
+    res.status(status).json({ success: false, message: err.message || "AI provider unavailable", code: "AI_PROVIDER_ERROR" });
+  }
+}
+
+/**
+ * POST /api/v1/ai/conversations/:conversationId/stream
+ * Body: { "message": "..." }
+ * SSE events matching Section 28: message_start / token / message_complete / error
+ */
+export async function streamConversationMessageHandler(req, res) {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ success: false, message: "message is required" });
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  const send = (event, data) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data ?? {})}\n\n`);
+  };
+
+  let finalUsage = null;
+  let finalModel = null;
+  let finalProvider = null;
+  let finalLatencyMs = 0;
+
+  try {
+    for await (const chunk of streamConversationMessage(req.auth.user._id, req.params.conversationId, message)) {
+      if (chunk.type === "message_start") send("message_start");
+      if (chunk.type === "token") send("token", { text: chunk.text });
+      if (chunk.type === "message_complete") {
+        finalUsage = chunk.usage;
+        finalModel = chunk.model;
+        finalProvider = chunk.provider;
+        finalLatencyMs = chunk.latencyMs || 0;
+        send("message_complete", { usage: chunk.usage, model: chunk.model });
+      }
+    }
+
+    if (finalUsage) {
+      await recordUsage({
+        userId: req.auth.user._id,
+        model: finalModel,
+        provider: finalProvider,
+        requestType: "CHAT_STREAM",
+        usage: finalUsage,
+        latencyMs: finalLatencyMs,
+      });
+    }
+  } catch (err) {
+    console.error("AI CONVERSATION STREAM ERROR:", err);
+    await recordFailure(req.auth.user._id, "CHAT_STREAM", "AI_PROVIDER_ERROR");
+    send("error", { message: "AI provider unavailable", code: "AI_PROVIDER_ERROR" });
+  } finally {
+    res.end();
+  }
+}
+
+// ==============================
+// LEGACY PHASE 1 ENDPOINTS (stateless, no conversation persistence)
+// ==============================
+
+/**
+ * POST /api/v1/ai/chat
+ * Phase 1 test endpoint: single message in, single response out.
+ */
+export async function chatWithAI(req, res) {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ message: "message is required" });
+
+  try {
+    const result = await sendMessage(message);
+
+    await recordUsage({
+      userId: req.auth.user._id,
+      model: result.model,
+      provider: result.provider,
+      requestType: "CHAT",
+      usage: result.usage,
+      latencyMs: result.latencyMs || 0,
+    });
+
+    res.json({ reply: result.text, model: result.model, usage: result.usage });
+  } catch (err) {
+    console.error("AI CHAT ERROR:", err);
+    await recordFailure(req.auth.user._id, "CHAT", "AI_PROVIDER_ERROR");
+    res.status(502).json({ message: "AI provider unavailable", code: "AI_PROVIDER_ERROR" });
+  }
+}
+
+/**
+ * POST /api/v1/ai/chat/tools
+ * Same as /chat but gives the model access to real app data via tools.
+ */
+export async function chatWithToolsAI(req, res) {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ message: "message is required" });
+
+  try {
+    const result = await sendMessageWithTools(req.auth.user._id, message);
+
+    if (result.pendingAction) {
+      return res.json({ reply: null, pendingAction: result.pendingAction, model: result.model });
+    }
+
+    await recordUsage({
+      userId: req.auth.user._id,
+      model: result.model,
+      provider: result.provider,
+      requestType: result.toolUsed ? "CHAT_TOOL" : "CHAT",
+      usage: result.usage,
+      latencyMs: result.latencyMs || 0,
+    });
+
+    res.json({ reply: result.text, model: result.model, usage: result.usage, toolUsed: result.toolUsed });
+  } catch (err) {
+    console.error("AI CHAT TOOLS ERROR:", err);
+    await recordFailure(req.auth.user._id, "CHAT_TOOL", "AI_PROVIDER_ERROR");
+    res.status(502).json({ message: "AI provider unavailable", code: "AI_PROVIDER_ERROR" });
+  }
+}
+
+/**
+ * POST /api/v1/ai/chat/tools/confirm
+ * Body: { "pendingAction": <exactly what /chat/tools returned> }
+ */
+export async function confirmChatAction(req, res) {
+  const { pendingAction } = req.body;
+  if (!pendingAction || !pendingAction.call) {
+    return res.status(400).json({ message: "pendingAction is required" });
+  }
+
+  try {
+    const result = await confirmMessage(req.auth.user._id, pendingAction);
+
+    await recordUsage({
+      userId: req.auth.user._id,
+      model: result.model,
+      provider: result.provider,
+      requestType: "CHAT_TOOL_CONFIRMED",
+      usage: result.usage,
+      latencyMs: result.latencyMs || 0,
+    });
+
+    res.json({ reply: result.text, model: result.model, usage: result.usage, toolUsed: result.toolUsed });
+  } catch (err) {
+    console.error("AI CONFIRM ACTION ERROR:", err);
+    await recordFailure(req.auth.user._id, "CHAT_TOOL_CONFIRMED", "AI_PROVIDER_ERROR");
+    res.status(502).json({ message: "AI provider unavailable", code: "AI_PROVIDER_ERROR" });
+  }
+}
+
+/**
+ * POST /api/v1/ai/chat/stream
+ * Body: { "message": "..." }
+ */
+export async function streamChatWithAI(req, res) {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ message: "message is required" });
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  const send = (event, data) => {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data ?? {})}\n\n`);
+  };
+
+  let finalUsage = null;
+  let finalModel = null;
+  let finalProvider = null;
+  let finalLatencyMs = 0;
+
+  try {
+    for await (const chunk of streamMessage(message)) {
+      if (chunk.type === "message_start") send("message_start");
+      if (chunk.type === "token") send("token", { text: chunk.text });
+      if (chunk.type === "message_complete") {
+        finalUsage = chunk.usage;
+        finalModel = chunk.model;
+        finalProvider = chunk.provider;
+        finalLatencyMs = chunk.latencyMs || 0;
+        send("message_complete", { usage: chunk.usage, model: chunk.model });
+      }
+    }
+
+    if (finalUsage) {
+      await recordUsage({
+        userId: req.auth.user._id,
+        model: finalModel,
+        provider: finalProvider,
+        requestType: "CHAT_STREAM",
+        usage: finalUsage,
+        latencyMs: finalLatencyMs,
+      });
+    }
+  } catch (err) {
+    console.error("AI STREAM ERROR:", err);
+    await recordFailure(req.auth.user._id, "CHAT_STREAM", "AI_PROVIDER_ERROR");
+    send("error", { message: "AI provider unavailable", code: "AI_PROVIDER_ERROR" });
+  } finally {
+    res.end();
+  }
+}
+
+// ==============================
+// AI PERSONALIZATION — CONSENT & MEMORY (Settings page)
+// ==============================
+// Plain REST endpoints for the user's own Settings screen — deliberately
+// separate from the AI tool loop (remember_preference/list_remembered_preferences
+// in ai/tools/memory.tools.js), which the model calls mid-conversation.
+// These exist so a user can see and control their personalization data
+// without having to go ask the AI chat about it.
+
+/** GET /api/v1/ai/personalization/consent */
+export async function getPersonalizationConsentHandler(req, res) {
+  const consent = await getPersonalizationConsent(req.auth.user._id);
+  res.json({ success: true, data: consent });
+}
+
+/** PATCH /api/v1/ai/personalization/consent  { granted: boolean } */
+export async function setPersonalizationConsentHandler(req, res) {
+  if (typeof req.body?.granted !== "boolean") {
+    return res.status(400).json({ success: false, message: "granted (boolean) is required" });
+  }
+  const consent = await setPersonalizationConsent(req.auth.user._id, req.body.granted);
+  res.json({ success: true, data: consent });
+}
+
+/** GET /api/v1/ai/memory — everything remembered about the user, stated + inferred */
+export async function listAIMemoryHandler(req, res) {
+  const facts = await listMemory(req.auth.user._id);
+  res.json({ success: true, data: { facts } });
+}
+
+/** DELETE /api/v1/ai/memory/:key */
+export async function deleteAIMemoryHandler(req, res) {
+  await forgetMemory(req.auth.user._id, req.params.key);
+  res.json({ success: true, message: "Forgotten" });
+}
+
+/**
+ * GET /api/v1/ai/insights — Doc 2 §35, Phase 4.
+ * Regenerates (rule engine, no LLM call — see aiInsight.service.js)
+ * and returns the user's current, non-dismissed insights.
+ */
+export async function listInsightsHandler(req, res) {
+  const insights = await generateInsightsForUser(req.auth.user._id);
+  res.json({ success: true, data: { insights } });
+}
+
+/** PATCH /api/v1/ai/insights/:insightId/dismiss */
+export async function dismissInsightHandler(req, res) {
+  const insight = await dismissInsight(req.auth.user._id, req.params.insightId);
+  if (!insight) {
+    return res.status(404).json({ success: false, message: "Insight not found" });
+  }
+  res.json({ success: true, data: insight });
+}

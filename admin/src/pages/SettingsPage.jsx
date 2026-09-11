@@ -3,6 +3,7 @@ import {
   Activity,
   BellRing,
   Bot,
+  BrainCircuit,
   Check,
   CircleDollarSign,
   Database,
@@ -17,12 +18,14 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Sun,
+  Trash2,
   WalletCards,
   Wrench,
 } from "lucide-react";
 
 import PageHeader from "../components/PageHeader.jsx";
 import CustomSelect from "../components/CustomSelect.jsx";
+import aiPersonalizationService from "../services/aiPersonalization.service.js";
 import "./SettingsPage.css";
 
 const COLOR_PRESETS = [
@@ -655,6 +658,10 @@ export default function SettingsPage() {
           />
         </div>
       </section>
+
+      {/* AI PERSONALIZATION — real, wired to server/src/routes/ai.routes.js */}
+
+      <AIPersonalizationSection />
     </div>
   );
 }
@@ -710,5 +717,205 @@ function SaveButton({ label, loading, onClick }) {
 
       {loading ? "Saving..." : label}
     </button>
+  );
+}
+
+/**
+ * AIPersonalizationSection
+ *
+ * Unlike every other section on this page (all local demo state, no
+ * backend calls), this one is fully wired to
+ * GET/PATCH /api/v1/ai/personalization/consent and
+ * GET/DELETE /api/v1/ai/memory. It's the user-facing control for
+ * everything discussed with the team: consent gates both stated
+ * (remember_preference) and inferred (aiInference.service.js) memory,
+ * and every fact — stated or inferred — is visible here and individually
+ * deletable, so personalization never happens somewhere the user can't
+ * see or undo it.
+ */
+function AIPersonalizationSection() {
+  const [consent, setConsent] = useState(null); // { consent, consentedAt, consentVersion }
+  const [facts, setFacts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [toggling, setToggling] = useState(false);
+  const [forgettingKey, setForgettingKey] = useState("");
+  const [error, setError] = useState("");
+
+  async function loadAll() {
+    setLoading(true);
+    setError("");
+    try {
+      const [consentRes, memoryRes] = await Promise.all([
+        aiPersonalizationService.getConsent(),
+        aiPersonalizationService.listMemory(),
+      ]);
+      setConsent(consentRes.data?.data || null);
+      setFacts(memoryRes.data?.data?.facts || []);
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Couldn't load personalization settings.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadAll();
+  }, []);
+
+  async function handleToggleConsent(granted) {
+    setToggling(true);
+    setError("");
+    try {
+      const res = await aiPersonalizationService.setConsent(granted);
+      setConsent(res.data?.data || null);
+      // Revoking deletes inferred facts server-side immediately — refresh
+      // the list so the UI reflects that without a page reload.
+      if (!granted) {
+        const memoryRes = await aiPersonalizationService.listMemory();
+        setFacts(memoryRes.data?.data?.facts || []);
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Couldn't update personalization consent.",
+      );
+    } finally {
+      setToggling(false);
+    }
+  }
+
+  async function handleForget(key) {
+    setForgettingKey(key);
+    setError("");
+    try {
+      await aiPersonalizationService.forgetMemory(key);
+      setFacts((prev) => prev.filter((f) => f.key !== key));
+    } catch (err) {
+      setError(err.response?.data?.message || "Couldn't forget that.");
+    } finally {
+      setForgettingKey("");
+    }
+  }
+
+  const statedFacts = facts.filter((f) => f.source !== "inferred");
+  const inferredFacts = facts.filter((f) => f.source === "inferred");
+  const granted = Boolean(consent?.consent);
+
+  return (
+    <section className="settings-section-card">
+      <div className="settings-section-header">
+        <div>
+          <span>Privacy</span>
+          <h2>AI Personalization</h2>
+          <p>
+            Control whether MONE AI can remember things about you across
+            conversations — both what you ask it to remember, and what it
+            notices from how you use the app.
+          </p>
+        </div>
+
+        <div className="settings-section-icon">
+          <BrainCircuit size={20} />
+        </div>
+      </div>
+
+      <div className="settings-section-body">
+        {error && (
+          <div className="settings-success" style={{ background: "rgba(255,80,80,0.08)", color: "#ff6b6b" }}>
+            <span>{error}</span>
+          </div>
+        )}
+
+        <div className="settings-toggle-list">
+          <SettingToggle
+            title="Personalization"
+            description={
+              granted
+                ? "MONE AI can remember preferences you state and learn from your usage patterns (e.g. which features you use most)."
+                : "MONE AI won't remember anything between conversations, stated or inferred."
+            }
+            checked={granted}
+            onChange={handleToggleConsent}
+            disabled={loading || toggling}
+          />
+        </div>
+
+        {consent?.consentedAt && (
+          <p style={{ fontSize: 12, opacity: 0.6, marginTop: -4 }}>
+            Last changed {new Date(consent.consentedAt).toLocaleDateString()}
+            {consent.consentVersion ? ` · policy v${consent.consentVersion}` : ""}
+          </p>
+        )}
+
+        {!loading && granted && (
+          <>
+            <MemoryFactGroup
+              title="What you've told it to remember"
+              emptyText="Nothing yet — ask the AI to remember something and confirm it, and it'll show up here."
+              facts={statedFacts}
+              onForget={handleForget}
+              forgettingKey={forgettingKey}
+            />
+
+            <MemoryFactGroup
+              title="What it's inferred from your usage"
+              emptyText="Nothing inferred yet — this fills in over time as you use the app."
+              facts={inferredFacts}
+              onForget={handleForget}
+              forgettingKey={forgettingKey}
+              inferred
+            />
+          </>
+        )}
+
+        {loading && <p style={{ fontSize: 13, opacity: 0.6 }}>Loading…</p>}
+      </div>
+    </section>
+  );
+}
+
+function MemoryFactGroup({ title, emptyText, facts, onForget, forgettingKey, inferred }) {
+  return (
+    <div style={{ marginTop: 18 }}>
+      <strong style={{ fontSize: 13, display: "block", marginBottom: 8 }}>{title}</strong>
+
+      {facts.length === 0 ? (
+        <p style={{ fontSize: 12.5, opacity: 0.55 }}>{emptyText}</p>
+      ) : (
+        <div className="settings-integration-list">
+          {facts.map((fact) => (
+            <div className="settings-integration-item" key={fact.key}>
+              <div className="settings-integration-left">
+                <div>
+                  <strong>{fact.value}</strong>
+                  <span>
+                    {fact.key}
+                    {inferred && typeof fact.confidence === "number"
+                      ? ` · ${Math.round(fact.confidence * 100)}% confidence`
+                      : ""}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="settings-save-button"
+                style={{ padding: "6px 12px" }}
+                disabled={forgettingKey === fact.key}
+                onClick={() => onForget(fact.key)}
+              >
+                {forgettingKey === fact.key ? (
+                  <RefreshCw size={14} className="settings-spin" />
+                ) : (
+                  <Trash2 size={14} />
+                )}
+                Forget
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
