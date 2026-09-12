@@ -260,6 +260,9 @@
   width: 100%;
   min-width: 0;
   padding: 30px;
+  font-size: var(--base-font-size, 16px);
+  zoom: var(--font-scale, 1);
+  transition: zoom 0.08s ease-out, font-size 0.08s ease-out;
 }
 
 /* TABLET */

@@ -7,6 +7,8 @@ import {
   updateUserStatus,
   updateUserPlan,
   getUserDevices,
+  revokeUserDevice,
+  getUserActivity,
   listAdmins,
   createAdmin,
   updateAdmin,
@@ -94,6 +96,27 @@ r.get(
     "ANALYST"
   ),
   getUserDevices
+);
+
+r.post(
+  "/users/:id/devices/:deviceId/revoke",
+  allowRoles(
+    "SUPER_ADMIN",
+    "ADMIN",
+    "SUPPORT"
+  ),
+  revokeUserDevice
+);
+
+r.get(
+  "/users/:id/activity",
+  allowRoles(
+    "SUPER_ADMIN",
+    "ADMIN",
+    "SUPPORT",
+    "ANALYST"
+  ),
+  getUserActivity
 );
 
 // ==============================

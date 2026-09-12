@@ -9,39 +9,10 @@ import {
   FaMobileAlt,
   FaTabletAlt,
   FaSignOutAlt,
+  FaSyncAlt,
 } from "react-icons/fa";
 
 import PageHeader from "../components/PageHeader.jsx";
-
-const DEFAULT_DEVICES = [
-  {
-    id: 1,
-    device: "MacBook Pro 16\"",
-    type: "desktop",
-    browser: "Chrome 122.0 (macOS)",
-    location: "San Francisco, US",
-    lastActive: "Active now",
-    status: "Active",
-  },
-  {
-    id: 2,
-    device: "iPhone 15 Pro",
-    type: "mobile",
-    browser: "Safari Mobile 17.2",
-    location: "San Francisco, US",
-    lastActive: "2 hours ago",
-    status: "Active",
-  },
-  {
-    id: 3,
-    device: "iPad Air",
-    type: "tablet",
-    browser: "Safari 17.0 (iPadOS)",
-    location: "New York, US",
-    lastActive: "3 days ago",
-    status: "Inactive",
-  },
-];
 
 export default function UserDevicesPage() {
   const { id, userId } = useParams();
@@ -50,20 +21,26 @@ export default function UserDevicesPage() {
 
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [revokingId, setRevokingId] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [viewFilter, setViewFilter] = useState("ACTIVE"); // "ACTIVE" | "ALL"
 
   async function loadDevices() {
     try {
+      setLoading(true);
+      setErrorMessage("");
       if (typeof adminService.getUserDevices === "function" && currentUserId) {
         const r = await adminService.getUserDevices(currentUserId);
-        if (Array.isArray(r?.data) && r.data.length > 0) {
+        if (Array.isArray(r?.data)) {
           setDevices(r.data);
           return;
         }
       }
-      setDevices(DEFAULT_DEVICES);
+      setDevices([]);
     } catch (err) {
-      console.warn("Failed to load devices from API, using defaults:", err);
-      setDevices(DEFAULT_DEVICES);
+      console.error("Failed to load user devices:", err);
+      setErrorMessage("Failed to load devices and sessions for this user.");
+      setDevices([]);
     } finally {
       setLoading(false);
     }
@@ -74,131 +51,297 @@ export default function UserDevicesPage() {
   }, [currentUserId]);
 
   // ---------------------------------------
-  // REVOKE DEVICE
+  // REVOKE DEVICE SESSION
   // ---------------------------------------
-
-  function revokeDevice(deviceId) {
-
-    setDevices((prev) =>
-      prev.map((device) =>
-        device.id === deviceId
-          ? {
-              ...device,
-              status: "Inactive",
-            }
-          : device
-      )
+  async function revokeDevice(deviceId) {
+    const confirmRevoke = window.confirm(
+      "Are you sure you want to revoke this device? The user will be logged out on this device."
     );
+    if (!confirmRevoke) return;
 
+    try {
+      setRevokingId(deviceId);
+      await adminService.revokeUserDevice(currentUserId, deviceId);
+      setDevices((prev) =>
+        prev.map((device) =>
+          device.id === deviceId
+            ? { ...device, status: "Revoked", activeSessionCount: 0 }
+            : device
+        )
+      );
+    } catch (err) {
+      console.error("Failed to revoke device session:", err);
+      alert(
+        err.response?.data?.message ||
+          "Failed to revoke device session. Please try again."
+      );
+    } finally {
+      setRevokingId(null);
+    }
   }
 
   function DeviceIcon({ type }) {
-
     if (type === "mobile") {
       return <FaMobileAlt />;
     }
-
     if (type === "tablet") {
       return <FaTabletAlt />;
     }
-
     return <FaDesktop />;
   }
-  if (loading) {
-  return <p>Loading devices...</p>;
-}
+
+  function getStatusBadgeClass(status) {
+    if (!status) return "status-inactive";
+    const s = String(status).toLowerCase();
+    if (s === "active") return "status-active";
+    if (s === "revoked" || s === "blocked") return "status-inactive";
+    return "status-inactive";
+  }
+
+  const activeDevices = devices.filter((d) => d.status === "Active");
+  const displayedDevices = viewFilter === "ACTIVE" ? activeDevices : devices;
 
   return (
     <>
-
       <PageHeader
-        title="User Devices"
-        subtitle="Registered devices and active sessions"
+        title="User Devices & Sessions"
+        subtitle="Distinct devices and live login sessions"
       />
 
-      <button
-        className="back-btn"
-        onClick={() =>
-          navigate(`/admin/users/${currentUserId}`)
-        }
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 18,
+          flexWrap: "wrap",
+          gap: 12,
+        }}
       >
-        <FaArrowLeft />
-        Back to User
-      </button>
+        <button
+          className="back-btn"
+          style={{ marginBottom: 0 }}
+          onClick={() => navigate(`/admin/users/${currentUserId}`)}
+        >
+          <FaArrowLeft />
+          Back to User Details
+        </button>
 
-      <div className="devices-grid">
-
-        {devices.map((device) => (
-
-          <div
-            className="device-card"
-            key={device.id}
-          >
-
-            <div className="device-top">
-
-              <div className="device-icon">
-                <DeviceIcon
-                  type={device.type}
-                />
-              </div>
-
-              <span
-                className={
-                  device.status === "Active"
-                    ? "status-badge status-active"
-                    : "status-badge status-inactive"
-                }
-              >
-                <span className="status-dot"></span>
-                {device.status}
-              </span>
-
-            </div>
-
-            <h3>
-              {device.device}
-            </h3>
-
-            <div className="device-info">
-
-              <p>
-                <strong>Browser:</strong>{" "}
-                {device.browser}
-              </p>
-
-              <p>
-                <strong>Location:</strong>{" "}
-                {device.location}
-              </p>
-
-              <p>
-                <strong>Last Active:</strong>{" "}
-                {device.lastActive}
-              </p>
-
-            </div>
-
-            {device.status === "Active" && (
-
-              <button
-                className="revoke-btn"
-                onClick={() =>
-                  revokeDevice(device.id)
-                }
-              >
-                <FaSignOutAlt />
-                Revoke Session
-              </button>
-
-            )}
-
-          </div>
-
-        ))}
-
+        <button
+          className="back-btn"
+          style={{ marginBottom: 0 }}
+          onClick={loadDevices}
+          disabled={loading}
+        >
+          <FaSyncAlt />
+          Refresh
+        </button>
       </div>
 
+      {/* FILTER TABS */}
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "20px",
+          alignItems: "center",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setViewFilter("ACTIVE")}
+          style={{
+            padding: "8px 16px",
+            borderRadius: "20px",
+            fontSize: "13px",
+            fontWeight: 600,
+            border:
+              viewFilter === "ACTIVE"
+                ? "1px solid var(--primary-color, #ff5722)"
+                : "1px solid #e5e5e5",
+            background:
+              viewFilter === "ACTIVE"
+                ? "var(--primary-bg-soft, #fff5f2)"
+                : "white",
+            color:
+              viewFilter === "ACTIVE"
+                ? "var(--primary-color, #ff5722)"
+                : "#555",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+          }}
+        >
+          Active Devices ({activeDevices.length})
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setViewFilter("ALL")}
+          style={{
+            padding: "8px 16px",
+            borderRadius: "20px",
+            fontSize: "13px",
+            fontWeight: 600,
+            border:
+              viewFilter === "ALL"
+                ? "1px solid var(--primary-color, #ff5722)"
+                : "1px solid #e5e5e5",
+            background:
+              viewFilter === "ALL"
+                ? "var(--primary-bg-soft, #fff5f2)"
+                : "white",
+            color:
+              viewFilter === "ALL"
+                ? "var(--primary-color, #ff5722)"
+                : "#555",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+          }}
+        >
+          All Devices & History ({devices.length})
+        </button>
+      </div>
+
+      {errorMessage && (
+        <div
+          style={{
+            padding: "12px 16px",
+            marginBottom: 20,
+            borderRadius: 8,
+            background: "rgba(239, 68, 68, 0.1)",
+            color: "#dc2626",
+            border: "1px solid rgba(239, 68, 68, 0.2)",
+            fontSize: "14px",
+          }}
+        >
+          {errorMessage}
+        </div>
+      )}
+
+      {loading ? (
+        <div
+          style={{
+            padding: "60px 20px",
+            textAlign: "center",
+            background: "white",
+            borderRadius: 14,
+            border: "1px solid #e5e5e5",
+          }}
+        >
+          <p style={{ color: "#666", fontSize: "15px" }}>Loading devices...</p>
+        </div>
+      ) : displayedDevices.length === 0 ? (
+        <div
+          style={{
+            padding: "60px 20px",
+            textAlign: "center",
+            background: "white",
+            borderRadius: 14,
+            border: "1px solid #e5e5e5",
+          }}
+        >
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: "50%",
+              background: "var(--primary-bg-soft, #fff5f2)",
+              color: "var(--primary-color, #ff5722)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 16px",
+              fontSize: 24,
+            }}
+          >
+            <FaDesktop />
+          </div>
+          <h3 style={{ margin: "0 0 8px", color: "#273952", fontSize: "18px" }}>
+            {viewFilter === "ACTIVE"
+              ? "No Active Devices"
+              : "No Devices or Sessions Recorded"}
+          </h3>
+          <p style={{ margin: 0, color: "#777", fontSize: "14px" }}>
+            {viewFilter === "ACTIVE"
+              ? "All previous sessions on this user's devices are currently logged out or revoked."
+              : "There are no login records for this user."}
+          </p>
+        </div>
+      ) : (
+        <div className="devices-grid">
+          {displayedDevices.map((device) => {
+            const isActive = device.status === "Active";
+            const isRevoking = revokingId === device.id;
+
+            return (
+              <div className="device-card" key={device.id}>
+                <div className="device-top">
+                  <div className="device-icon">
+                    <DeviceIcon type={device.type} />
+                  </div>
+
+                  <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                    {device.isCurrent && (
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          padding: "3px 8px",
+                          borderRadius: "12px",
+                          background: "var(--primary-bg-soft, #fff5f2)",
+                          color: "var(--primary-color, #ff5722)",
+                        }}
+                      >
+                        Current
+                      </span>
+                    )}
+
+                    <span className={`status-badge ${getStatusBadgeClass(device.status)}`}>
+                      <span className="status-dot"></span>
+                      {device.status}
+                    </span>
+                  </div>
+                </div>
+
+                <h3>{device.device || "Web Session"}</h3>
+
+                <div className="device-info">
+                  <p>
+                    <strong>Browser:</strong> {device.browser || "Browser"}
+                  </p>
+
+                  <p>
+                    <strong>Operating System:</strong> {device.os || "Unknown"}
+                  </p>
+
+                  <p>
+                    <strong>IP Address:</strong> {device.ip || "127.0.0.1"}
+                  </p>
+
+                  <p>
+                    <strong>Location:</strong> {device.location || "Verified"}
+                  </p>
+
+                  <p>
+                    <strong>Last Active:</strong> {device.lastActive}
+                  </p>
+                </div>
+
+                {isActive && (
+                  <button
+                    className="revoke-btn"
+                    onClick={() => revokeDevice(device.id)}
+                    disabled={isRevoking}
+                  >
+                    <FaSignOutAlt />
+                    {isRevoking ? "Revoking..." : "Revoke Device"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </>
   );
 }

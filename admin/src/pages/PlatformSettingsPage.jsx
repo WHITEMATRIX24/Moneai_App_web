@@ -292,9 +292,16 @@ function applyFontSize(size) {
     return;
   }
 
+  const scale = fontSize / 16;
+
   document.documentElement.style.setProperty(
     "--base-font-size",
     `${fontSize}px`
+  );
+
+  document.documentElement.style.setProperty(
+    "--font-scale",
+    String(scale)
   );
 
   localStorage.setItem(
@@ -985,75 +992,82 @@ function applyFontSize(size) {
 
 
   <div className="ps-font-scale-box">
-
     <div className="ps-font-scale-top">
-
       <div>
         <strong>Dashboard Font Size</strong>
-
-        <span>
-          Move the slider to adjust the text size.
-        </span>
+        <span>Move the slider to adjust the text size.</span>
       </div>
 
       <div className="ps-font-size-value">
-        {settings.fontSize}px
+        {Math.round(Number(settings.fontSize) || 16)}px
       </div>
-
     </div>
-
 
     <input
       type="range"
       min="12"
       max="24"
-      step="1"
-      value={settings.fontSize}
+      step="0.25"
+      value={Number(settings.fontSize) || 16}
       onChange={(e) => {
-        const value = Number(e.target.value);
-
-        updateSetting("fontSize", value);
-        applyFontSize(value);
+        const val = parseFloat(e.target.value);
+        updateSetting("fontSize", val);
+        applyFontSize(val);
+      }}
+      onInput={(e) => {
+        const val = parseFloat(e.target.value);
+        updateSetting("fontSize", val);
+        applyFontSize(val);
       }}
       className="ps-font-slider"
+      style={{
+        background: `linear-gradient(to right, var(--primary-color, #ff6500) 0%, var(--primary-color, #ff6500) ${Math.max(
+          0,
+          Math.min(100, (((Number(settings.fontSize) || 16) - 12) / (24 - 12)) * 100)
+        )}%, var(--ps-slider-empty, #e5ded6) ${Math.max(
+          0,
+          Math.min(100, (((Number(settings.fontSize) || 16) - 12) / (24 - 12)) * 100)
+        )}%, var(--ps-slider-empty, #e5ded6) 100%)`,
+      }}
     />
 
-
     <div className="ps-font-scale-labels">
-
       <span>12px</span>
-
       <span>16px</span>
-
       <span>20px</span>
-
       <span>24px</span>
-
     </div>
 
-
     <div className="ps-font-example">
-
       <span
         style={{
-          fontSize: `${settings.fontSize}px`,
+          fontSize: `${Number(settings.fontSize) || 16}px`,
+          transition: "font-size 0.08s ease-out",
         }}
       >
         Aa
       </span>
 
       <div>
-        <strong>
-          Example Text
+        <strong
+          style={{
+            fontSize: `${Math.round((Number(settings.fontSize) || 16) * 0.95)}px`,
+            transition: "font-size 0.08s ease-out",
+          }}
+        >
+          Example Text ({Math.round(Number(settings.fontSize) || 16)}px)
         </strong>
 
-        <p>
+        <p
+          style={{
+            fontSize: `${Math.round((Number(settings.fontSize) || 16) * 0.82)}px`,
+            transition: "font-size 0.08s ease-out",
+          }}
+        >
           This is how your dashboard text will appear.
         </p>
       </div>
-
     </div>
-
   </div>
 
 </div>

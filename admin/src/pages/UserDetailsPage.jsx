@@ -34,6 +34,17 @@ export default function UserDetailsPage() {
     try {
       setLoading(true);
 
+      // First try direct getUser endpoint for full details
+      try {
+        const directRes = await adminService.getUser(userId);
+        if (directRes.data && directRes.data._id) {
+          setUser(directRes.data);
+          return;
+        }
+      } catch (err) {
+        console.warn("Direct getUser failed, falling back to users list:", err);
+      }
+
       const response = await adminService.users();
 
       const users = response.data?.users || [];
@@ -295,8 +306,8 @@ export default function UserDetailsPage() {
             <div className="user-info-item">
               <span className="user-info-label">Last Login</span>
               <span className="user-info-value">
-                {user.lastLoginAt
-                  ? new Date(user.lastLoginAt).toLocaleString()
+                {user.lastLoginAt || user.lastActiveAt
+                  ? new Date(user.lastLoginAt || user.lastActiveAt).toLocaleString()
                   : "Never"}
               </span>
             </div>

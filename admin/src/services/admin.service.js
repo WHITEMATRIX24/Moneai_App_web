@@ -4,6 +4,7 @@ export const adminService = {
   dashboard: () => api.get("/admin/dashboard"),
 
   users: () => api.get("/admin/users"),
+  getUser: (id) => api.get(`/admin/users/${id}`),
 
   updateUserStatus: (id, status) =>
     api.patch(`/admin/users/${id}/status`, { status }),
@@ -13,6 +14,12 @@ export const adminService = {
 
   getUserDevices: (id) =>
     api.get(`/admin/users/${id}/devices`),
+
+  revokeUserDevice: (id, deviceId) =>
+    api.post(`/admin/users/${id}/devices/${deviceId}/revoke`),
+
+  getUserActivity: (id) =>
+    api.get(`/admin/users/${id}/activity`),
 
   notifications: () =>
     api.get("/admin/notifications"),

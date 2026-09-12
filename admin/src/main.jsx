@@ -131,10 +131,19 @@ try {
 
   const savedFont = localStorage.getItem("mone_font_size");
   if (savedFont) {
+    const fontSize = Number(savedFont);
+    const scale = fontSize / 16;
     document.documentElement.style.setProperty(
       "--base-font-size",
-      `${savedFont}px`,
+      `${fontSize}px`
     );
+    document.documentElement.style.setProperty(
+      "--font-scale",
+      String(scale)
+    );
+  } else {
+    document.documentElement.style.setProperty("--base-font-size", "16px");
+    document.documentElement.style.setProperty("--font-scale", "1");
   }
 } catch (e) {
   console.error("Theme boot initialization error:", e);

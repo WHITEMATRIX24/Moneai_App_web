@@ -3167,6 +3167,25 @@ html.dark-mode .ps-live-preview,
 html.dark-mode .ps-font-scale-box {
   background: #111827 !important;
   border-color: #334155 !important;
+  --ps-slider-empty: #2d3748;
+}
+
+html.dark-mode .ps-font-example {
+  background: #172033 !important;
+  border-color: #334155 !important;
+}
+
+html.dark-mode .ps-font-example strong {
+  color: #f8fafc !important;
+}
+
+html.dark-mode .ps-font-example p {
+  color: #94a3b8 !important;
+}
+
+html.dark-mode .ps-font-size-value {
+  background: rgba(var(--primary-color-rgb, 255, 101, 0), 0.15) !important;
+  border-color: var(--primary-color, #ff6500) !important;
 }
 
 html.dark-mode .mode-card,

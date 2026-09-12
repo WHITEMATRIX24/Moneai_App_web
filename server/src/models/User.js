@@ -45,6 +45,11 @@ const userSchema = new mongoose.Schema(
       default: "FREE",
     },
 
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
+
     lastActiveAt: {
       type: Date,
       default: null,

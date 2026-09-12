@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import Admin from "../models/Admin.js";
 import User from "../models/User.js";
 import RefreshSession from "../models/RefreshSession.js";
+import { parseUserAgent } from "../utils/userAgent.js";
 
 // ==============================
 // TOKEN HELPERS
@@ -59,7 +60,7 @@ function hashToken(token) {
 // SESSION CREATION
 // ==============================
 
-async function createSession({ id, type, role = null }) {
+async function createSession({ id, type, role = null, req = null }) {
   const sessionId = crypto.randomUUID();
 
   const refreshToken = createRefreshToken({
@@ -72,11 +73,39 @@ async function createSession({ id, type, role = null }) {
 
   const expiresAt = new Date(Date.now() + refreshDays * 24 * 60 * 60 * 1000);
 
+  const rawUa = req?.headers?.["user-agent"] || "";
+  const parsedUa = parseUserAgent(rawUa);
+  const rawIp =
+    req?.headers?.["x-forwarded-for"] ||
+    req?.ip ||
+    req?.socket?.remoteAddress ||
+    "127.0.0.1";
+  const ip = typeof rawIp === "string" ? rawIp.split(",")[0].trim() : "127.0.0.1";
+
+  // Revoke previous sessions on the same device so only one active session remains
+  await RefreshSession.updateMany(
+    {
+      userId: id,
+      userType: type,
+      device: parsedUa.device,
+      revokedAt: null,
+    },
+    { revokedAt: new Date() }
+  );
+
   await RefreshSession.create({
     sessionId,
     userId: id,
     userType: type,
     tokenHash: hashToken(refreshToken),
+    device: parsedUa.device,
+    deviceType: parsedUa.deviceType,
+    browser: parsedUa.browser,
+    os: parsedUa.os,
+    ip,
+    location: "Current Session",
+    userAgent: rawUa,
+    lastActiveAt: new Date(),
     expiresAt,
   });
 
@@ -135,6 +164,7 @@ export async function registerUser(req, res) {
       });
     }
 
+    const now = new Date();
     const user = await User.create({
       name: String(name).trim(),
       email: normalizedEmail,
@@ -142,11 +172,14 @@ export async function registerUser(req, res) {
       phone: phone || "",
       timezone: timezone || "Asia/Kolkata",
       status: "ACTIVE",
+      lastLoginAt: now,
+      lastActiveAt: now,
     });
 
     const tokens = await createSession({
       id: user._id.toString(),
       type: "user",
+      req,
     });
 
     return res.status(201).json({
@@ -218,13 +251,16 @@ export async function loginUser(req, res) {
       });
     }
 
-    user.lastActiveAt = new Date();
+    const now = new Date();
+    user.lastActiveAt = now;
+    user.lastLoginAt = now;
 
     await user.save();
 
     const tokens = await createSession({
       id: user._id.toString(),
       type: "user",
+      req,
     });
 
     return res.json({
@@ -305,6 +341,7 @@ export async function loginAdmin(req, res) {
       id: admin._id.toString(),
       type: "admin",
       role: admin.role,
+      req,
     });
 
     return res.json({

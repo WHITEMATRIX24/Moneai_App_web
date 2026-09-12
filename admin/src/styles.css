@@ -1,5 +1,7 @@
 :root {
   font-family: Inter, system-ui, sans-serif;
+  --base-font-size: 16px;
+  --font-scale: 1;
 
   /* ── SINGLE SOURCE OF TRUTH FOR ACCENT COLOR ──
      JS calls: document.documentElement.style.setProperty("--primary-color", newColor)
@@ -220,6 +222,7 @@ button {
 body {
   margin: 0;
   background: var(--bg);
+  font-size: var(--base-font-size, 16px);
 }
 button,
 input {

@@ -26,10 +26,51 @@ const refreshSessionSchema = new mongoose.Schema(
       required: true,
     },
 
+    device: {
+      type: String,
+      default: "Web Browser",
+    },
+
+    deviceType: {
+      type: String,
+      enum: ["desktop", "mobile", "tablet"],
+      default: "desktop",
+    },
+
+    browser: {
+      type: String,
+      default: "Chrome",
+    },
+
+    os: {
+      type: String,
+      default: "macOS",
+    },
+
+    ip: {
+      type: String,
+      default: "127.0.0.1",
+    },
+
+    location: {
+      type: String,
+      default: "Current Location",
+    },
+
+    userAgent: {
+      type: String,
+      default: "",
+    },
+
+    lastActiveAt: {
+      type: Date,
+      default: Date.now,
+    },
+
     expiresAt: {
-  type: Date,
-  required: true,
-},
+      type: Date,
+      required: true,
+    },
     revokedAt: {
       type: Date,
       default: null,
