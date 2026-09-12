@@ -1270,7 +1270,7 @@ html.dark-mode .ai-cost-bar-wrap {
 }
 
 html.dark-mode .ai-cost-bar {
-  background: linear-gradient(90deg, var(--primary-color, #ff6500) 0%, rgba(255, 101, 0, 0.75) 100%) !important;
+  background: linear-gradient(90deg, var(--primary-color, #ff6500) 0%, rgba(var(--primary-color-rgb, 255, 101, 0), 0.75) 100%) !important;
 }
 
 html.dark-mode .ai-cost-amount {
@@ -3211,7 +3211,7 @@ html.dark-mode tbody td {
 
 html.dark-mode input,
 html.dark-mode select,
-html.dark-mode textarea {
+html.dark-mode textarea:not(.ai-composer__textarea) {
   background: #111827 !important;
   color: #f8fafc !important;
   border-color: #334155 !important;
@@ -3219,13 +3219,13 @@ html.dark-mode textarea {
 
 html.dark-mode input:focus,
 html.dark-mode select:focus,
-html.dark-mode textarea:focus {
+html.dark-mode textarea:not(.ai-composer__textarea):focus {
   border-color: var(--primary-color, #ff6500) !important;
   box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 255, 101, 0), 0.22) !important;
 }
 
 html.dark-mode input::placeholder,
-html.dark-mode textarea::placeholder {
+html.dark-mode textarea:not(.ai-composer__textarea)::placeholder {
   color: #64748b !important;
 }
 
@@ -3255,8 +3255,42 @@ html.dark-mode .ps-reset-btn:hover {
 }
 
 html.dark-mode .btn-primary,
-html.dark-mode .ps-save-btn {
+html.dark-mode .ps-save-btn,
+html.dark-mode .create-notification-btn,
+html.dark-mode .health-notifications-hero .create-notification-btn,
+html.dark-mode .modal-save-btn,
+html.dark-mode .health-modal-save,
+html.dark-mode .todo-add-btn,
+html.dark-mode .admin-notif-new-btn,
+html.dark-mode .users-view-btn,
+html.dark-mode .save-btn,
+html.dark-mode .settings-save-btn,
+html.dark-mode .widgets-btn-primary,
+html.dark-mode .sub-manage-btn,
+html.dark-mode .sub-upgrade-btn,
+html.dark-mode .health-vital-add-btn:hover,
+html.dark-mode .health-page .health-vital-add-btn:hover {
   background: var(--primary-color, #ff6500) !important;
+  border-color: var(--primary-color, #ff6500) !important;
+  color: #ffffff !important;
+}
+
+html.dark-mode .btn-primary:hover:not(:disabled),
+html.dark-mode .ps-save-btn:hover:not(:disabled),
+html.dark-mode .create-notification-btn:hover:not(:disabled),
+html.dark-mode .health-notifications-hero .create-notification-btn:hover:not(:disabled),
+html.dark-mode .modal-save-btn:hover:not(:disabled),
+html.dark-mode .health-modal-save:hover:not(:disabled),
+html.dark-mode .todo-add-btn:hover:not(:disabled),
+html.dark-mode .admin-notif-new-btn:hover:not(:disabled),
+html.dark-mode .users-view-btn:hover:not(:disabled),
+html.dark-mode .save-btn:hover:not(:disabled),
+html.dark-mode .settings-save-btn:hover:not(:disabled),
+html.dark-mode .widgets-btn-primary:hover:not(:disabled),
+html.dark-mode .sub-manage-btn:hover:not(:disabled),
+html.dark-mode .sub-upgrade-btn:hover:not(:disabled) {
+  background: var(--primary-hover, var(--primary-color, #ff6500)) !important;
+  border-color: var(--primary-hover, var(--primary-color, #ff6500)) !important;
   color: #ffffff !important;
 }
 
@@ -3577,6 +3611,18 @@ html.dark-mode .health-notifications-hero .notification-refresh-btn {
   border-color: #334155 !important;
 }
 
+html.dark-mode .health-notifications-hero .create-notification-btn {
+  background: var(--primary-color, #ff6500) !important;
+  border-color: var(--primary-color, #ff6500) !important;
+  color: #ffffff !important;
+}
+
+html.dark-mode .health-notifications-hero .create-notification-btn:hover:not(:disabled) {
+  background: var(--primary-hover, var(--primary-color, #ff6500)) !important;
+  border-color: var(--primary-hover, var(--primary-color, #ff6500)) !important;
+  color: #ffffff !important;
+}
+
 html.dark-mode .health-summary-notification-grid .summary-card {
   background: #172033 !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -3624,9 +3670,20 @@ html.dark-mode .health-tabs .notification-tab:hover {
   color: #ffffff !important;
 }
 
-html.dark-mode .health-tabs .notification-tab.active {
-  background: #ff6500 !important;
+html.dark-mode .health-tabs .notification-tab.active,
+html.dark-mode .notification-tabs .notification-tab.active,
+html.dark-mode .notification-tab.active,
+html.dark-mode .filter-tab.active,
+html.dark-mode .todo-filter-tab.active {
+  background: var(--primary-color, #ff6500) !important;
+  border-color: var(--primary-color, #ff6500) !important;
   color: #ffffff !important;
+}
+
+html.dark-mode .section-kicker,
+html.dark-mode .health-main-header .section-kicker,
+html.dark-mode .health-panel-kicker {
+  color: var(--primary-color, #ff6500) !important;
 }
 
 html.dark-mode .health-main-card,
@@ -3703,8 +3760,94 @@ html.dark-mode .health-vital-detail-card__reading {
   color: #94a3b8 !important;
 }
 
-html.dark-mode .health-vital-detail-card__reading strong {
+html.dark-mode .health-module-card__arrow {
+  background: rgba(var(--primary-color-rgb, 255, 101, 0), 0.15) !important;
+  border: 1px solid rgba(var(--primary-color-rgb, 255, 101, 0), 0.28) !important;
+  color: var(--primary-color, #ff6500) !important;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+html.dark-mode .health-module-card:hover .health-module-card__arrow,
+html.dark-mode .health-module-card__arrow:hover {
+  transform: translateX(2px) !important;
+  background: var(--primary-color, #ff6500) !important;
+  border-color: var(--primary-color, #ff6500) !important;
   color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(var(--primary-color-rgb, 255, 101, 0), 0.35) !important;
+}
+
+html.dark-mode .health-module-arrow {
+  color: var(--primary-color, #ff6500) !important;
+}
+
+html.dark-mode .health-module-icon {
+  background: rgba(var(--primary-color-rgb, 255, 101, 0), 0.15) !important;
+  border-color: rgba(var(--primary-color-rgb, 255, 101, 0), 0.3) !important;
+  color: var(--primary-color, #ff6500) !important;
+}
+
+html.dark-mode .health-vital-history-btn,
+html.dark-mode .health-page .health-vital-history-btn {
+  background: #111a2e !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+}
+
+html.dark-mode .health-vital-history-btn:hover,
+html.dark-mode .health-page .health-vital-history-btn:hover {
+  background: rgba(var(--primary-color-rgb, 255, 101, 0), 0.2) !important;
+  border-color: var(--primary-color, #ff6500) !important;
+  color: var(--primary-color, #ff6500) !important;
+}
+
+html.dark-mode .health-vital-detail-card__reading,
+html.dark-mode .health-page .health-vital-detail-card__reading {
+  background: #111a2e !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  color: #94a3b8 !important;
+}
+
+html.dark-mode .health-vital-detail-card__reading strong,
+html.dark-mode .health-page .health-vital-detail-card__reading strong {
+  color: #ffffff !important;
+}
+
+html.dark-mode .health-vital-detail-card__reading span,
+html.dark-mode .health-page .health-vital-detail-card__reading span {
+  color: #94a3b8 !important;
+}
+
+html.dark-mode .health-vital-detail-card__reading small,
+html.dark-mode .health-page .health-vital-detail-card__reading small {
+  color: #64748b !important;
+}
+
+html.dark-mode .health-vital-add-btn,
+html.dark-mode .health-page .health-vital-add-btn {
+  background: var(--primary-color, #ff6500) !important;
+  border: 1px solid var(--primary-color, #ff6500) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(var(--primary-color-rgb, 255, 101, 0), 0.35) !important;
+}
+
+html.dark-mode .health-vital-add-btn:hover,
+html.dark-mode .health-page .health-vital-add-btn:hover {
+  background: var(--primary-hover, #e05600) !important;
+  border-color: var(--primary-hover, #e05600) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(var(--primary-color-rgb, 255, 101, 0), 0.5) !important;
+}
+
+html.dark-mode .health-overview-circle {
+  background: conic-gradient(
+    var(--primary-color, #ff6500) 0deg,
+    var(--primary-color, #ff6500) 0deg,
+    #243247 0deg,
+    #243247 360deg
+  ) !important;
 }
 
 html.dark-mode .health-overview-circle::before {
@@ -3736,6 +3879,10 @@ html.dark-mode .health-modal {
   background: #172033 !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.dark-mode .health-modal__header span {
+  color: var(--primary-color, #ff6500) !important;
 }
 
 html.dark-mode .health-modal__header,
@@ -4525,7 +4672,8 @@ html.dark-mode .finance-tab:hover {
 }
 
 html.dark-mode .finance-tab.active {
-  background: linear-gradient(135deg, var(--primary-color, #ff6500), #ff8f3f) !important;
+  background: var(--primary-color, #ff6500) !important;
+  border-color: var(--primary-color, #ff6500) !important;
   color: #ffffff !important;
 }
 

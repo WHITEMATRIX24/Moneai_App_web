@@ -222,13 +222,13 @@ export default function SubscriptionPage() {
 
           <div className="sub-hero__cta">
             {isFree || isTrial ? (
-              <Link to="/plans" className="sub-upgrade-btn">
+              <Link to="/plans" className="sub-upgrade-btn btn-primary">
                 <Zap size={17} />
                 Upgrade Plan
                 <ArrowUpRight size={16} />
               </Link>
             ) : (
-              <Link to="/plans" className="sub-manage-btn">
+              <Link to="/plans" className="sub-manage-btn btn-primary">
                 Manage Plan
                 <ArrowUpRight size={16} />
               </Link>

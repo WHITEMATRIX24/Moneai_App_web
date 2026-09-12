@@ -94,6 +94,96 @@
   border-radius: 8px !important;
 }
 
+/* ---- Primary CTA Buttons follow active theme color ---- */
+.btn-primary,
+.create-notification-btn,
+.health-notifications-hero .create-notification-btn,
+.modal-save-btn,
+.health-modal-save,
+.todo-add-btn,
+.admin-notif-new-btn,
+.users-view-btn,
+.ps-save-btn,
+.save-btn,
+.settings-save-btn,
+.widgets-btn-primary,
+.sub-manage-btn,
+.sub-upgrade-btn {
+  background: var(--btn-primary-bg, var(--primary-color, #ff6500)) !important;
+  border-color: var(--btn-primary-bg, var(--primary-color, #ff6500)) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover:not(:disabled),
+.create-notification-btn:hover:not(:disabled),
+.health-notifications-hero .create-notification-btn:hover:not(:disabled),
+.modal-save-btn:hover:not(:disabled),
+.health-modal-save:hover:not(:disabled),
+.todo-add-btn:hover:not(:disabled),
+.admin-notif-new-btn:hover:not(:disabled),
+.users-view-btn:hover:not(:disabled),
+.ps-save-btn:hover:not(:disabled),
+.save-btn:hover:not(:disabled),
+.settings-save-btn:hover:not(:disabled),
+.widgets-btn-primary:hover:not(:disabled),
+.sub-manage-btn:hover:not(:disabled),
+.sub-upgrade-btn:hover:not(:disabled) {
+  background: var(--btn-primary-bg-hover, var(--primary-hover, var(--primary-color, #ff6500))) !important;
+  border-color: var(--btn-primary-bg-hover, var(--primary-hover, var(--primary-color, #ff6500))) !important;
+  color: #ffffff !important;
+}
+
+/* Active tabs & pill filters follow theme color */
+.notification-tab.active,
+.health-tabs .notification-tab.active,
+.finance-tab.active,
+.filter-tab.active,
+.todo-filter-tab.active {
+  background: var(--primary-color, #ff6500) !important;
+  border-color: var(--primary-color, #ff6500) !important;
+  color: #ffffff !important;
+}
+
+/* Section kickers & category labels */
+.section-kicker,
+.health-main-header .section-kicker,
+.health-panel-kicker {
+  color: var(--primary-color, #ff6500) !important;
+}
+
+/* Health module cards: arrow buttons match active theme */
+.health-module-card__arrow {
+  background: var(--accent-soft, rgba(var(--primary-color-rgb, 255, 101, 0), 0.12)) !important;
+  border: 1px solid rgba(var(--primary-color-rgb, 255, 101, 0), 0.22) !important;
+  color: var(--primary-color, #ff6500) !important;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+.health-module-card:hover .health-module-card__arrow,
+.health-module-card__arrow:hover {
+  transform: translateX(2px) !important;
+  background: var(--primary-color, #ff6500) !important;
+  border-color: var(--primary-color, #ff6500) !important;
+  color: #ffffff !important;
+}
+
+.health-vital-add-btn,
+.health-page .health-vital-add-btn {
+  background: var(--primary-color, #ff6500) !important;
+  border: 1px solid var(--primary-color, #ff6500) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  transition: all 0.18s ease !important;
+}
+
+.health-vital-add-btn:hover,
+.health-page .health-vital-add-btn:hover {
+  background: var(--primary-hover, #e05600) !important;
+  border-color: var(--primary-hover, #e05600) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+}
+
 /* ---- Badges: quiet chips, not pills ---- */
 .status,
 .status-badge,

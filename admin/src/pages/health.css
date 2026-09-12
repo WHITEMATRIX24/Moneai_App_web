@@ -208,14 +208,14 @@
 
 .health-notifications-hero
 .create-notification-btn {
-  background: #ff6500;
+  background: var(--btn-primary-bg, var(--primary-color, #ff6500));
 
   color: #ffffff;
 
-  border: 1px solid #ff6500;
+  border: 1px solid var(--btn-primary-bg, var(--primary-color, #ff6500));
 
   box-shadow:
-    0 9px 20px rgba(255, 101, 0, 0.20);
+    0 9px 20px rgba(var(--primary-color-rgb, 255, 101, 0), 0.20);
 }
 
 
@@ -495,7 +495,7 @@
 
 .health-tabs
 .notification-tab.active {
-  background: #ff6500;
+  background: var(--primary-color, #ff6500);
 
   color: #ffffff;
 
@@ -678,7 +678,7 @@
 
   margin-bottom: 6px;
 
-  color: #ff6500;
+  color: var(--primary-color, #ff6500);
 
   font-size: 9px;
   font-weight: 850;
@@ -820,11 +820,11 @@
 
   border-radius: 12px;
 
-  background: #fff0e5;
+  background: var(--accent-soft, rgba(var(--primary-color-rgb, 255, 101, 0), 0.12));
 
-  border: 1px solid rgba(255, 101, 0, 0.16);
+  border: 1px solid rgba(var(--primary-color-rgb, 255, 101, 0), 0.2);
 
-  color: #ff6500;
+  color: var(--primary-color, #ff6500);
 }
 
 
@@ -914,20 +914,28 @@
 
   border-radius: 8px;
 
-  background: #fff0e5;
+  background: var(--accent-soft, rgba(var(--primary-color-rgb, 255, 101, 0), 0.12));
 
-  color: #ff6500;
+  border: 1px solid rgba(var(--primary-color-rgb, 255, 101, 0), 0.2);
+
+  color: var(--primary-color, #ff6500);
 
   font-size: 15px;
 
   transition:
-    transform 0.18s ease;
+    transform 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
 }
 
 
 .health-module-card:hover
 .health-module-card__arrow {
   transform: translateX(2px);
+  background: var(--primary-color, #ff6500);
+  border-color: var(--primary-color, #ff6500);
+  color: #ffffff;
 }
 
 
@@ -960,7 +968,7 @@
 
   margin-bottom: 6px;
 
-  color: #ff6500;
+  color: var(--primary-color, #ff6500);
 
   font-size: 9px;
   font-weight: 850;

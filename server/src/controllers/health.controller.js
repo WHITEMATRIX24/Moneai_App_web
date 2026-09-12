@@ -15,7 +15,8 @@ export async function createHealthMetric(req, res) {
   try {
     const userId = req.auth?.user?._id;
     const doc = await HealthMetric.create({ userId, ...req.body });
-    return res.status(201).json(doc);
+    const payload = doc.toObject ? doc.toObject() : doc;
+    return res.status(201).json({ metric: doc, ...payload });
   } catch (error) {
     console.error("createHealthMetric error:", error);
     return res.status(500).json({ message: error.message || "Failed to create health metric" });

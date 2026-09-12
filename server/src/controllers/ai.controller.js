@@ -26,10 +26,19 @@ import { streamMessage, streamConversationMessage } from "../services/ai/aiStrea
 export async function listAIUsage(req, res) {
   try {
     const q = req.auth.type === "user" ? { userId: req.auth.user._id } : {};
-    const usage = await AIUsage.find(q)
+    const usageDocs = await AIUsage.find(q)
       .populate("userId", "name email subscriptionPlan")
       .sort({ createdAt: -1 })
-      .limit(200);
+      .limit(200)
+      .lean();
+    const usage = usageDocs.map((u) => {
+      const tokenCount = u.totalTokens || (u.promptTokens || 0) + (u.completionTokens || 0) || 0;
+      return {
+        ...u,
+        tokens: tokenCount,
+        totalTokens: tokenCount,
+      };
+    });
     res.json({ usage });
   } catch (err) {
     res.status(500).json({ message: err.message });

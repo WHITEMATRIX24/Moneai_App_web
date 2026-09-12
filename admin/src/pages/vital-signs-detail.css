@@ -242,7 +242,7 @@
 }
 
 .health-vital-add-btn:hover {
-  background: #ff6500;
+  background: var(--primary-color, #ff6500);
 
   color: #ffffff;
 }
@@ -444,9 +444,9 @@
 
 
 .health-modal-save {
-  background: #ff6500;
+  background: var(--primary-color, #ff6500);
 
-  border: 1px solid #ff6500;
+  border: 1px solid var(--primary-color, #ff6500);
 
   color: #ffffff;
 }

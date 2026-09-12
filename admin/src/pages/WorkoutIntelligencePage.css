@@ -1199,14 +1199,14 @@ th {
 
 .health-notifications-hero
 .create-notification-btn {
-  background: #ff6500;
+  background: var(--btn-primary-bg, var(--primary-color, #ff6500));
 
   color: #ffffff;
 
-  border: 1px solid #ff6500;
+  border: 1px solid var(--btn-primary-bg, var(--primary-color, #ff6500));
 
   box-shadow:
-    0 9px 20px rgba(255, 101, 0, 0.20);
+    0 9px 20px rgba(var(--primary-color-rgb, 255, 101, 0), 0.20);
 }
 
 
@@ -1486,7 +1486,7 @@ th {
 
 .health-tabs
 .notification-tab.active {
-  background: #ff6500;
+  background: var(--primary-color, #ff6500);
 
   color: #ffffff;
 
@@ -1669,7 +1669,7 @@ th {
 
   margin-bottom: 6px;
 
-  color: #ff6500;
+  color: var(--primary-color, #ff6500);
 
   font-size: 9px;
   font-weight: 850;
@@ -1951,7 +1951,7 @@ th {
 
   margin-bottom: 6px;
 
-  color: #ff6500;
+  color: var(--primary-color, #ff6500);
 
   font-size: 9px;
   font-weight: 850;
@@ -2524,7 +2524,7 @@ th {
 }
 
 .health-vital-add-btn:hover {
-  background: #ff6500;
+  background: var(--primary-color, #ff6500);
 
   color: #ffffff;
 }
@@ -2726,9 +2726,9 @@ th {
 
 
 .health-modal-save {
-  background: #ff6500;
+  background: var(--primary-color, #ff6500);
 
-  border: 1px solid #ff6500;
+  border: 1px solid var(--primary-color, #ff6500);
 
   color: #ffffff;
 }
@@ -3083,7 +3083,7 @@ th {
   color: #ff6900;
 }
 
-.health-page .health-vital-history-btn {
+.health-workouts-page .health-vital-history-btn {
   width: 34px;
   height: 34px;
 
@@ -3107,7 +3107,7 @@ th {
     border-color 0.2s ease;
 }
 
-.health-page .health-vital-history-btn:hover {
+.health-workouts-page .health-vital-history-btn:hover {
   background: #fff5ec;
 
   color: #ff6900;
@@ -3115,7 +3115,7 @@ th {
   border-color: rgba(255, 110, 0, 0.2);
 }
 
-.health-page .health-vital-detail-card__content h3 {
+.health-workouts-page .health-vital-detail-card__content h3 {
   margin: 0 0 7px;
 
   color: #193d63;
@@ -3125,7 +3125,7 @@ th {
   font-weight: 800;
 }
 
-.health-page .health-vital-detail-card__content p {
+.health-workouts-page .health-vital-detail-card__content p {
   margin: 0;
 
   color: #7892ad;
@@ -3135,7 +3135,7 @@ th {
   line-height: 1.55;
 }
 
-.health-page .health-vital-detail-card__reading {
+.health-workouts-page .health-vital-detail-card__reading {
   min-height: 82px;
 
   display: flex;
@@ -3152,7 +3152,7 @@ th {
   background: #f8f7f3;
 }
 
-.health-page .health-vital-detail-card__reading strong {
+.health-workouts-page .health-vital-detail-card__reading strong {
   display: block;
 
   color: #193d63;
@@ -3164,7 +3164,7 @@ th {
   overflow-wrap: anywhere;
 }
 
-.health-page .health-vital-detail-card__reading small {
+.health-workouts-page .health-vital-detail-card__reading small {
   display: block;
 
   margin-top: 5px;
@@ -3176,7 +3176,7 @@ th {
   line-height: 1.45;
 }
 
-.health-page .health-vital-add-btn {
+.health-workouts-page .health-vital-add-btn {
   width: 100%;
 
   min-height: 40px;
@@ -3210,7 +3210,7 @@ th {
     transform 0.2s ease;
 }
 
-.health-page .health-vital-add-btn:hover {
+.health-workouts-page .health-vital-add-btn:hover {
   background: #ffe9d7;
 
   transform: translateY(-1px);
@@ -4534,7 +4534,7 @@ td span {
 .shell > aside nav a.active,
 .app-sidebar nav a.active {
   color: #ffffff;
-  background: #ff6500;
+  background: var(--primary-color, #ff6500);
 
   box-shadow: 0 7px 16px rgba(255, 101, 0, 0.2);
 }

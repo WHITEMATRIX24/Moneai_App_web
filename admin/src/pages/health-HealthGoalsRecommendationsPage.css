@@ -1199,14 +1199,14 @@ th {
 
 .health-notifications-hero
 .create-notification-btn {
-  background: #ff6500;
+  background: var(--btn-primary-bg, var(--primary-color, #ff6500));
 
   color: #ffffff;
 
-  border: 1px solid #ff6500;
+  border: 1px solid var(--btn-primary-bg, var(--primary-color, #ff6500));
 
   box-shadow:
-    0 9px 20px rgba(255, 101, 0, 0.20);
+    0 9px 20px rgba(var(--primary-color-rgb, 255, 101, 0), 0.20);
 }
 
 
@@ -1486,7 +1486,7 @@ th {
 
 .health-tabs
 .notification-tab.active {
-  background: #ff6500;
+  background: var(--primary-color, #ff6500);
 
   color: #ffffff;
 
@@ -1669,7 +1669,7 @@ th {
 
   margin-bottom: 6px;
 
-  color: #ff6500;
+  color: var(--primary-color, #ff6500);
 
   font-size: 9px;
   font-weight: 850;
@@ -1951,7 +1951,7 @@ th {
 
   margin-bottom: 6px;
 
-  color: #ff6500;
+  color: var(--primary-color, #ff6500);
 
   font-size: 9px;
   font-weight: 850;
@@ -2524,7 +2524,7 @@ th {
 }
 
 .health-vital-add-btn:hover {
-  background: #ff6500;
+  background: var(--primary-color, #ff6500);
 
   color: #ffffff;
 }
@@ -2726,9 +2726,9 @@ th {
 
 
 .health-modal-save {
-  background: #ff6500;
+  background: var(--primary-color, #ff6500);
 
-  border: 1px solid #ff6500;
+  border: 1px solid var(--primary-color, #ff6500);
 
   color: #ffffff;
 }
@@ -3611,7 +3611,7 @@ td span {
 .shell > aside nav a.active,
 .app-sidebar nav a.active {
   color: #ffffff;
-  background: #ff6500;
+  background: var(--primary-color, #ff6500);
 
   box-shadow: 0 7px 16px rgba(255, 101, 0, 0.2);
 }

@@ -12,7 +12,7 @@
 // the composer is a single rounded input anchored to the bottom.
 
 import { useEffect, useRef, useState } from "react";
-import { Plus, ArrowUp, Loader2, Sparkles, Trash2, Square } from "lucide-react";
+import { Plus, ArrowUp, Loader2, Sparkles, Trash2, Square, Mic, MicOff } from "lucide-react";
 
 import PageHeader from "../components/PageHeader.jsx";
 import { aiChatService } from "../services/aiChat.service.js";
@@ -39,10 +39,35 @@ export default function AiChatPage() {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
 
+  // Voice to text states
+  const [isListening, setIsListening] = useState(false);
+  const isListeningRef = useRef(false);
+  const recognitionRef = useRef(null);
+  const baseTextRef = useRef("");
+
   const scrollRef = useRef(null);
   const textareaRef = useRef(null);
   const shellRef = useRef(null);
   const [shellHeight, setShellHeight] = useState(null);
+
+  // Auto-resize textarea as input changes
+  useEffect(() => {
+    if (!textareaRef.current) return;
+    textareaRef.current.style.height = "auto";
+    const nextH = Math.min(Math.max(textareaRef.current.scrollHeight, 24), 160);
+    textareaRef.current.style.height = `${nextH}px`;
+  }, [input]);
+
+  // Clean up speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch (e) {}
+      }
+    };
+  }, []);
 
   // ------------------------------------------------------------------
   // Load conversation list on mount
@@ -145,14 +170,126 @@ export default function AiChatPage() {
   }
 
   // ------------------------------------------------------------------
+  // Voice-to-Text Speech Recognition
+  // ------------------------------------------------------------------
+  const stopListening = () => {
+    isListeningRef.current = false;
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.abort();
+      } catch (e) {}
+      recognitionRef.current = null;
+    }
+    baseTextRef.current = "";
+    setIsListening(false);
+  };
+
+  const startListening = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setError("Voice recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      return;
+    }
+
+    try {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.onresult = null;
+          recognitionRef.current.onerror = null;
+          recognitionRef.current.onend = null;
+          recognitionRef.current.abort();
+        } catch (e) {}
+        recognitionRef.current = null;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = navigator.language || "en-US";
+
+      // Prefix what was already in input so speech appends smoothly
+      baseTextRef.current = input ? (input.endsWith(" ") ? input : input + " ") : "";
+      isListeningRef.current = true;
+
+      recognition.onstart = () => {
+        isListeningRef.current = true;
+        setIsListening(true);
+        setError("");
+      };
+
+      recognition.onresult = (event) => {
+        if (!isListeningRef.current) return;
+        let interimTranscript = "";
+        let finalTranscript = "";
+
+        for (let i = 0; i < event.results.length; i++) {
+          const res = event.results[i];
+          if (res.isFinal) {
+            finalTranscript += res[0].transcript;
+          } else {
+            interimTranscript += res[0].transcript;
+          }
+        }
+
+        const spoken = (finalTranscript + (interimTranscript ? " " + interimTranscript : "")).trim();
+        if (spoken && isListeningRef.current) {
+          setInput(baseTextRef.current + spoken);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn("Speech recognition error:", event.error);
+        if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+          setError("Microphone access denied. Please allow microphone permissions to dictate.");
+        } else if (event.error !== "no-speech" && event.error !== "aborted") {
+          setError(`Voice input error: ${event.error}`);
+        }
+        isListeningRef.current = false;
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        isListeningRef.current = false;
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error("Failed to start speech recognition:", err);
+      isListeningRef.current = false;
+      setIsListening(false);
+      setError("Could not start speech recognition.");
+    }
+  };
+
+  const toggleListening = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
+  // ------------------------------------------------------------------
   // Sending a message
   // ------------------------------------------------------------------
   async function handleSend(overrideText) {
+    stopListening();
+    baseTextRef.current = "";
+
     const text = (overrideText ?? input).trim();
     if (!text || sending) return;
 
     setError("");
     setInput("");
+    if (textareaRef.current) {
+      textareaRef.current.value = "";
+      textareaRef.current.style.height = "auto";
+    }
     setSending(true);
     setMessages((prev) => [...prev, { role: "USER", content: text, _pending: true }]);
 
@@ -216,6 +353,7 @@ export default function AiChatPage() {
   function handleKeyDown(e) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      if (isListening) stopListening();
       handleSend();
     }
   }
@@ -310,26 +448,61 @@ export default function AiChatPage() {
           {error && <div className="ai-error-banner">{error}</div>}
 
           <div className="ai-composer-dock">
-            <div className={`ai-composer${pendingAction ? " is-disabled" : ""}`}>
+            {isListening && (
+              <div className="ai-composer__listening-pill">
+                <span className="ai-composer__recording-dot" />
+                <span className="ai-composer__listening-text">Listening... Speak into your microphone</span>
+                <button
+                  type="button"
+                  className="ai-composer__listening-stop"
+                  onClick={stopListening}
+                >
+                  Done
+                </button>
+              </div>
+            )}
+
+            <div className={`ai-composer${pendingAction ? " is-disabled" : ""}${isListening ? " is-recording" : ""}`}>
               <textarea
                 ref={textareaRef}
                 className="ai-composer__textarea"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={pendingAction ? "Confirm or cancel the action above first…" : "Ask MONE AI..."}
+                placeholder={
+                  pendingAction
+                    ? "Confirm or cancel the action above first…"
+                    : isListening
+                    ? "Listening to voice input..."
+                    : "Ask MONE AI..."
+                }
                 disabled={sending || !!pendingAction}
                 rows={1}
               />
-              <button
-                type="button"
-                className="ai-composer__send"
-                disabled={sending || !input.trim() || !!pendingAction}
-                onClick={() => handleSend()}
-                aria-label="Send message"
-              >
-                {sending ? <Square size={13} /> : <ArrowUp size={17} />}
-              </button>
+
+              <div className="ai-composer__actions">
+                <button
+                  type="button"
+                  className={`ai-composer__mic${isListening ? " is-active" : ""}`}
+                  disabled={sending || !!pendingAction}
+                  onClick={toggleListening}
+                  aria-label={isListening ? "Stop voice input" : "Voice to text"}
+                  title={isListening ? "Stop voice listening" : "Voice to text"}
+                >
+                  {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                </button>
+
+                <button
+                  type="button"
+                  className={`ai-composer__send${input.trim() ? " has-text" : ""}`}
+                  disabled={sending || !input.trim() || !!pendingAction}
+                  onClick={() => handleSend()}
+                  aria-label="Send message"
+                  title="Send message"
+                >
+                  {sending ? <Square size={13} /> : <ArrowUp size={18} strokeWidth={2.5} />}
+                </button>
+              </div>
             </div>
             <p className="ai-composer__hint">MONE AI can make mistakes. Check important info before acting on it.</p>
           </div>

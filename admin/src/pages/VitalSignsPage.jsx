@@ -639,15 +639,12 @@ export default function VitalSignsPage() {
 
 
       const savedMetric =
-        response.data?.metric;
-
+        response.data?.metric || response.data?.doc || (response.data?.type ? response.data : null);
 
       if (!savedMetric) {
-
         throw new Error(
           "Invalid response from server",
         );
-
       }
 
 

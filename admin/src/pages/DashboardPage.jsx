@@ -459,7 +459,13 @@ export default function DashboardPage({ isAdmin = false }) {
   }, [aiChats]);
 
   const totalTokens = useMemo(() => {
-    return aiChats.reduce((sum, chat) => sum + Number(chat.tokens || 0), 0);
+    return aiChats.reduce((sum, chat) => {
+      const count =
+        chat.totalTokens ??
+        chat.tokens ??
+        ((chat.promptTokens || 0) + (chat.completionTokens || 0));
+      return sum + Number(count || 0);
+    }, 0);
   }, [aiChats]);
 
   const expensePercentage =
@@ -707,8 +713,8 @@ export default function DashboardPage({ isAdmin = false }) {
 
                 <div className="dashboard-ai-item__meta">
                   <span>
-                    {chat.tokens
-                      ? `${formatNumber(chat.tokens)} tokens`
+                    {(chat.totalTokens ?? chat.tokens)
+                      ? `${formatNumber(chat.totalTokens ?? chat.tokens)} tokens`
                       : "Conversation"}
                   </span>
                   <span className="dashboard-dot" />

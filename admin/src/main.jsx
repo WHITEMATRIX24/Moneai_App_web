@@ -97,9 +97,14 @@ function applyAccentColor(color) {
   root.style.setProperty("--widget-accent", color);
   root.style.setProperty("--admin-accent", color);
 
+  root.style.setProperty("--health-orange", color);
+  root.style.setProperty("--health-orange-soft", `rgba(${r}, ${g}, ${b}, 0.15)`);
+  root.style.setProperty("--health-orange-pale", `rgba(${r}, ${g}, ${b}, 0.06)`);
+
   // Button design system tokens
   root.style.setProperty("--btn-primary-bg", color);
   root.style.setProperty("--btn-primary-bg-hover", darker);
+  root.style.setProperty("--btn-primary-border", color);
   root.style.setProperty("--btn-secondary-color-hv", color);
   root.style.setProperty("--btn-secondary-border-hv", color);
 

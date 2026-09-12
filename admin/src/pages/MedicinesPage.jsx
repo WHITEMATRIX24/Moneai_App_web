@@ -499,8 +499,61 @@ export default function MedicinesPage() {
       />
 
       <div className="medicines-page">
+        {/* Top bar spanning full width across the entire screen */}
+        <div className="med-topbar">
+          <div>
+            <div className="medicines-hero__eyebrow">
+              <Pill size={13} />
+              Health · Reminders
+            </div>
+            <h1 className="med-topbar__title">Never miss a dose.</h1>
+            <p className="med-topbar__sub">
+              Track medicines for yourself or anyone you look after, and
+              check off doses as they're taken.
+            </p>
+          </div>
+          <div className="med-topbar__actions">
+            <button
+              type="button"
+              className="medicines-refresh-btn"
+              onClick={() => load(true)}
+              disabled={refreshing}
+            >
+              <RefreshCw
+                size={15}
+                className={refreshing ? "todo-spin" : ""}
+              />
+              {refreshing ? "Refreshing" : "Refresh"}
+            </button>
+            <button
+              type="button"
+              className="export-btn"
+              disabled={loading || !filteredMedicines.length}
+              onClick={() => {
+                const rows = filteredMedicines.map((m) => ({
+                  Person: m.personName || "Me",
+                  Medicine: m.name,
+                  Dosage: m.dosage || "",
+                  Frequency: m.frequency || "EVERYDAY",
+                  Times: (m.times || []).join(" | "),
+                  Notes: m.notes || "",
+                }));
+                exportToPdf(
+                  `medicines_${new Date().toISOString().slice(0, 10)}.pdf`,
+                  "Medicines",
+                  "Medicine list with dosage, schedule and reminder times.",
+                  rows
+                );
+              }}
+            >
+              <Download size={15} />
+              Export PDF
+            </button>
+          </div>
+        </div>
+
         <div className="med-layout">
-          {/* ── LEFT SIDEBAR ── */}
+          {/* ── LEFT SIDEBAR (Dose Calendar, Overview, Filters) ── */}
           <div className="med-sidebar">
             {/* Calendar card */}
             <div className="med-sidebar-card">
@@ -608,60 +661,8 @@ export default function MedicinesPage() {
             )}
           </div>
 
-          {/* ── RIGHT CONTENT ── */}
+          {/* ── RIGHT CONTENT (Today's Doses, Add Medicine, Medicine List) ── */}
           <div className="med-content">
-            {/* Top bar */}
-            <div className="med-topbar">
-              <div>
-                <div className="medicines-hero__eyebrow">
-                  <Pill size={13} />
-                  Health · Reminders
-                </div>
-                <h1 className="med-topbar__title">Never miss a dose.</h1>
-                <p className="med-topbar__sub">
-                  Track medicines for yourself or anyone you look after, and
-                  check off doses as they're taken.
-                </p>
-              </div>
-              <div className="med-topbar__actions">
-                <button
-                  type="button"
-                  className="medicines-refresh-btn"
-                  onClick={() => load(true)}
-                  disabled={refreshing}
-                >
-                  <RefreshCw
-                    size={15}
-                    className={refreshing ? "todo-spin" : ""}
-                  />
-                  {refreshing ? "Refreshing" : "Refresh"}
-                </button>
-                <button
-                  type="button"
-                  className="export-btn"
-                  disabled={loading || !filteredMedicines.length}
-                  onClick={() => {
-                    const rows = filteredMedicines.map((m) => ({
-                      Person: m.personName || "Me",
-                      Medicine: m.name,
-                      Dosage: m.dosage || "",
-                      Frequency: m.frequency || "EVERYDAY",
-                      Times: (m.times || []).join(" | "),
-                      Notes: m.notes || "",
-                    }));
-                    exportToPdf(
-                      `medicines_${new Date().toISOString().slice(0, 10)}.pdf`,
-                      "Medicines",
-                      "Medicine list with dosage, schedule and reminder times.",
-                      rows
-                    );
-                  }}
-                >
-                  <Download size={15} />
-                  Export PDF
-                </button>
-              </div>
-            </div>
 
             {error && (
               <div className="todo-error">

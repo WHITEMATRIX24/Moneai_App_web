@@ -1570,7 +1570,7 @@ export function AIUserUsage({ data: externalData, loading: externalLoading }) {
   const summary = usersData?.summary;
   const totalUsersCount = summary?.totalUsers || (hasLive ? rawList.length : 8940);
   const totalRequestsCount = summary?.totalRequests || (hasLive ? rawList.reduce((acc, u) => acc + (u.requests || 0), 0) : 142800);
-  const totalTokensCount = summary?.totalTokens || (hasLive ? rawList.reduce((acc, u) => acc + (u.tokens || 0), 0) : 48600000);
+  const totalTokensCount = summary?.totalTokens || (hasLive ? rawList.reduce((acc, u) => acc + (u.totalTokens || u.tokens || 0), 0) : 48600000);
   const totalCostCount = summary?.totalCost ?? (hasLive ? rawList.reduce((acc, u) => acc + (u.cost || 0), 0) : 348.20);
   const hasTokensBreakdown = Boolean(summary?.inputTokens > 0 || summary?.outputTokens > 0);
   const inputTokensCount = hasTokensBreakdown
@@ -1818,7 +1818,7 @@ export function AIUserUsage({ data: externalData, loading: externalLoading }) {
                     </strong>
                   </td>
 
-                  <td>{Number(user.tokens || 0).toLocaleString()}</td>
+                  <td>{Number(user.totalTokens ?? user.tokens ?? 0).toLocaleString()}</td>
 
                   <td>
                     <span className="ai-cost-value">
