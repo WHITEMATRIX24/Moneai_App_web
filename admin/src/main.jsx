@@ -116,6 +116,21 @@ function applyAccentColor(color) {
 
 // Initialize theme settings on application startup
 try {
+  // Clean up legacy localStorage session data if "Remember Me" was not checked
+  if (localStorage.getItem("mone_remember_me") !== "true") {
+    if (!sessionStorage.getItem("mone_access_token")) {
+      localStorage.removeItem("mone_access_token");
+      localStorage.removeItem("mone_refresh_token");
+      localStorage.removeItem("mone_session_id");
+      localStorage.removeItem("mone_account_type");
+      localStorage.removeItem("mone_user");
+    }
+  }
+} catch (e) {
+  console.error("Auth session cleanup error:", e);
+}
+
+try {
   const savedMode = localStorage.getItem("mone_theme_mode");
   if (savedMode === "dark") {
     document.documentElement.classList.add("dark-mode");

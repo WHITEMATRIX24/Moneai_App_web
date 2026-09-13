@@ -1,26 +1,103 @@
 import api from "./api.js";
 
 // ==============================
+// STORAGE HELPERS
+// ==============================
+
+export function getStoredToken() {
+  return (
+    sessionStorage.getItem("mone_access_token") ||
+    (localStorage.getItem("mone_remember_me") === "true"
+      ? localStorage.getItem("mone_access_token")
+      : null)
+  );
+}
+
+export function getStoredRefreshToken() {
+  return (
+    sessionStorage.getItem("mone_refresh_token") ||
+    (localStorage.getItem("mone_remember_me") === "true"
+      ? localStorage.getItem("mone_refresh_token")
+      : null)
+  );
+}
+
+export function getStoredSessionId() {
+  return (
+    sessionStorage.getItem("mone_session_id") ||
+    (localStorage.getItem("mone_remember_me") === "true"
+      ? localStorage.getItem("mone_session_id")
+      : null)
+  );
+}
+
+export function getAccountType() {
+  return (
+    sessionStorage.getItem("mone_account_type") ||
+    (localStorage.getItem("mone_remember_me") === "true"
+      ? localStorage.getItem("mone_account_type")
+      : null)
+  );
+}
+
+export function getActiveStorage() {
+  if (sessionStorage.getItem("mone_access_token")) {
+    return sessionStorage;
+  }
+  if (
+    localStorage.getItem("mone_remember_me") === "true" &&
+    localStorage.getItem("mone_access_token")
+  ) {
+    return localStorage;
+  }
+  return sessionStorage;
+}
+
+export function clearAuthSession() {
+  const keys = [
+    "mone_access_token",
+    "mone_refresh_token",
+    "mone_session_id",
+    "mone_account_type",
+    "mone_user",
+    "mone_remember_me",
+    "user_token",
+    "user_info",
+    "mone_admin_token",
+    "mone_admin_user",
+  ];
+  keys.forEach((k) => {
+    sessionStorage.removeItem(k);
+    localStorage.removeItem(k);
+  });
+}
+
+// ==============================
 // STORE AUTH SESSION
 // ==============================
 
-function storeAuthSession(data, accountType) {
-  localStorage.setItem("mone_access_token", data.accessToken);
+export function storeAuthSession(data, accountType, rememberMe = false) {
+  clearAuthSession();
 
-  localStorage.setItem("mone_refresh_token", data.refreshToken);
+  // If rememberMe is false, use sessionStorage so closing the browser requires logging in again
+  const storage = rememberMe ? localStorage : sessionStorage;
 
-  localStorage.setItem("mone_session_id", data.sessionId);
+  storage.setItem("mone_access_token", data.accessToken);
+  storage.setItem("mone_refresh_token", data.refreshToken);
+  storage.setItem("mone_session_id", data.sessionId);
+  storage.setItem("mone_account_type", accountType);
+  storage.setItem("mone_user", JSON.stringify(data.user));
 
-  localStorage.setItem("mone_account_type", accountType);
-
-  localStorage.setItem("mone_user", JSON.stringify(data.user));
+  if (rememberMe) {
+    localStorage.setItem("mone_remember_me", "true");
+  }
 }
 
 // ==============================
 // LOGIN
 // ==============================
 
-export async function login(accountType, email, password) {
+export async function login(accountType, email, password, rememberMe = false) {
   const endpoint =
     accountType === "admin" ? "/auth/admin/login" : "/auth/user/login";
 
@@ -31,7 +108,7 @@ export async function login(accountType, email, password) {
 
   const resolvedAccountType = data.accountType || accountType;
 
-  storeAuthSession(data, resolvedAccountType);
+  storeAuthSession(data, resolvedAccountType, rememberMe);
 
   return data;
 }
@@ -43,13 +120,8 @@ export async function login(accountType, email, password) {
 export async function registerUser(userData) {
   const { data } = await api.post("/auth/user/register", userData);
 
-  /*
-   * Your backend registration currently
-   * returns accessToken, refreshToken,
-   * sessionId and user.
-   */
   if (data?.accessToken && data?.refreshToken && data?.sessionId) {
-    storeAuthSession(data, data.accountType || "user");
+    storeAuthSession(data, data.accountType || "user", false);
   }
 
   return data;
@@ -60,7 +132,7 @@ export async function registerUser(userData) {
 // ==============================
 
 export async function refreshAccessToken() {
-  const refreshToken = localStorage.getItem("mone_refresh_token");
+  const refreshToken = getStoredRefreshToken();
 
   if (!refreshToken) {
     throw new Error("No refresh token available");
@@ -70,7 +142,8 @@ export async function refreshAccessToken() {
     refreshToken,
   });
 
-  localStorage.setItem("mone_access_token", data.accessToken);
+  const storage = getActiveStorage();
+  storage.setItem("mone_access_token", data.accessToken);
 
   return data.accessToken;
 }
@@ -80,7 +153,7 @@ export async function refreshAccessToken() {
 // ==============================
 
 export async function logout() {
-  const sessionId = localStorage.getItem("mone_session_id");
+  const sessionId = getStoredSessionId();
 
   try {
     if (sessionId) {
@@ -91,20 +164,7 @@ export async function logout() {
   } catch (error) {
     console.error("Logout request failed:", error);
   } finally {
-    localStorage.removeItem("mone_access_token");
-
-    localStorage.removeItem("mone_refresh_token");
-
-    localStorage.removeItem("mone_session_id");
-
-    localStorage.removeItem("mone_account_type");
-
-    localStorage.removeItem("mone_user");
-
-    // legacy keys
-    localStorage.removeItem("mone_admin_token");
-
-    localStorage.removeItem("mone_admin_user");
+    clearAuthSession();
   }
 }
 
@@ -137,19 +197,19 @@ export function getStoredAdmin() {
 }
 
 // ==============================
-// GET ACCOUNT TYPE
-// ==============================
-
-export function getAccountType() {
-  return localStorage.getItem("mone_account_type");
-}
-
-// ==============================
 // INTERNAL STORAGE READER
 // ==============================
 
+export function getStoredAccount() {
+  return readStoredAccount();
+}
+
 function readStoredAccount() {
-  const storedUser = localStorage.getItem("mone_user");
+  const storedUser =
+    sessionStorage.getItem("mone_user") ||
+    (localStorage.getItem("mone_remember_me") === "true"
+      ? localStorage.getItem("mone_user")
+      : null);
 
   if (!storedUser) {
     return null;
@@ -158,8 +218,7 @@ function readStoredAccount() {
   try {
     return JSON.parse(storedUser);
   } catch {
-    localStorage.removeItem("mone_user");
-
+    clearAuthSession();
     return null;
   }
 }

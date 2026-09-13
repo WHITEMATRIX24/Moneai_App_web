@@ -862,6 +862,18 @@
   background: var(--panel, #ffffff);
   border-top: 1px solid var(--line, #e2d8cc);
   box-shadow: 0 -8px 24px rgba(40, 48, 60, 0.08);
+  animation: psSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes psSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .ps-save-message {

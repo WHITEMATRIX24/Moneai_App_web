@@ -16,14 +16,12 @@ import {
 } from "../../services/finance.service.js";
 
 import api from "../../services/api.js";
+import { getStoredAccount } from "../../services/auth.service.js";
 
 function getActiveUserId() {
   try {
-    const raw = localStorage.getItem("mone_user");
-    if (raw) {
-      const u = JSON.parse(raw);
-      if (u?._id) return u._id;
-    }
+    const user = getStoredAccount();
+    if (user?._id) return user._id;
   } catch {}
   return "000000000000000000000001";
 }

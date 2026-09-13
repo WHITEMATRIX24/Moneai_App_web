@@ -25,6 +25,7 @@ import {
 
 import PageHeader from "../components/PageHeader.jsx";
 import CustomSelect from "../components/CustomSelect.jsx";
+import ColorWheelPicker from "../components/theme/ColorWheelPicker.jsx";
 import aiPersonalizationService from "../services/aiPersonalization.service.js";
 import "./SettingsPage.css";
 
@@ -290,46 +291,186 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="settings-appearance-group" style={{ marginTop: "24px" }}>
-            <label className="settings-subheading">Theme Accent Color</label>
+          <div className="settings-appearance-group" style={{ marginTop: "28px" }}>
+            <label className="settings-subheading">Interactive Theme Accent Palette</label>
             <p className="settings-field-hint">
-              Select a curated shade or choose a custom hex color. Every component, hero, card, and indicator updates instantly.
+              Drag anywhere on the chromatic color wheel or use the shade slider to customize your theme. Every button, badge, card, and indicator updates in real-time.
             </p>
-            <div className="settings-color-row">
-              <div className="settings-color-grid">
-                {COLOR_PRESETS.map((color) => {
-                  const isSelected = themeColor.toLowerCase() === color.toLowerCase();
-                  return (
-                    <button
-                      key={color}
-                      type="button"
-                      className={`settings-color-btn ${isSelected ? "active" : ""}`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => handleThemeColorChange(color)}
-                      aria-label={`Select accent color ${color}`}
-                    >
-                      {isSelected && <Check size={16} color="#ffffff" strokeWidth={3} />}
-                    </button>
-                  );
-                })}
-              </div>
+            <div
+              className="settings-theme-container"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                gap: "24px",
+                alignItems: "stretch",
+                marginTop: "18px",
+              }}
+            >
+              <ColorWheelPicker
+                value={themeColor}
+                onChange={handleThemeColorChange}
+                size={230}
+              />
+              <div
+                className="settings-theme-preview-card"
+                style={{
+                  background: "var(--bg-card, #ffffff)",
+                  border: "1px solid var(--line, #e2e8f0)",
+                  borderRadius: "18px",
+                  padding: "24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  gap: "20px",
+                  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.04)",
+                  boxSizing: "border-box",
+                }}
+              >
+                {/* Header */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <strong style={{ fontSize: "15px", color: "var(--text, #1e293b)", display: "block" }}>
+                      Live Component Preview
+                    </strong>
+                    <span style={{ fontSize: "12px", color: "var(--muted, #64748b)" }}>
+                      Every card, button, and indicator syncs live
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      padding: "4px 10px",
+                      borderRadius: "12px",
+                      background: "rgba(var(--primary-color-rgb, 255, 101, 0), 0.12)",
+                      color: "var(--primary-color, #ff6500)",
+                    }}
+                  >
+                    Realtime Sync
+                  </span>
+                </div>
 
-              <div className="settings-custom-picker">
-                <input
-                  type="color"
-                  value={themeColor.startsWith("#") && themeColor.length === 7 ? themeColor : "#ff6500"}
-                  onChange={(e) => handleThemeColorChange(e.target.value)}
-                  className="settings-native-color-picker"
-                  title="Choose custom color"
-                />
-                <input
-                  type="text"
-                  value={themeColor}
-                  onChange={(e) => handleThemeColorChange(e.target.value)}
-                  className="settings-hex-input"
-                  placeholder="#ff6500"
-                  maxLength={7}
-                />
+                {/* Buttons Row */}
+                <div>
+                  <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "var(--muted, #94a3b8)", letterSpacing: "0.05em", display: "block", marginBottom: "8px" }}>
+                    Buttons & Actions
+                  </span>
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+                    <button
+                      type="button"
+                      style={{
+                        padding: "10px 20px",
+                        borderRadius: "10px",
+                        border: "none",
+                        background: "var(--primary-color, #ff6500)",
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        boxShadow: "0 4px 14px rgba(var(--primary-color-rgb, 255, 101, 0), 0.35)",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      Primary Button
+                    </button>
+                    <button
+                      type="button"
+                      style={{
+                        padding: "9px 18px",
+                        borderRadius: "10px",
+                        border: "1px solid var(--primary-border, rgba(var(--primary-color-rgb, 255, 101, 0), 0.3))",
+                        background: "transparent",
+                        color: "var(--primary-color, #ff6500)",
+                        fontWeight: 600,
+                        fontSize: "13px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Outline Button
+                    </button>
+                    <button
+                      type="button"
+                      style={{
+                        padding: "9px 14px",
+                        borderRadius: "10px",
+                        border: "none",
+                        background: "var(--primary-bg-soft, rgba(var(--primary-color-rgb, 255, 101, 0), 0.1))",
+                        color: "var(--primary-color, #ff6500)",
+                        fontWeight: 700,
+                        fontSize: "13px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Soft Tint
+                    </button>
+                  </div>
+                </div>
+
+                {/* Metrics / KPI card */}
+                <div
+                  style={{
+                    padding: "16px 18px",
+                    borderRadius: "14px",
+                    background: "var(--primary-bg-soft, rgba(var(--primary-color-rgb, 255, 101, 0), 0.05))",
+                    border: "1px solid var(--primary-border, rgba(var(--primary-color-rgb, 255, 101, 0), 0.2))",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: "12px", color: "var(--muted, #64748b)", fontWeight: 600 }}>Active Theme Metric</div>
+                    <div style={{ fontSize: "24px", fontWeight: 800, color: "var(--primary-color, #ff6500)", marginTop: "2px" }}>
+                      {themeColor.toUpperCase()}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: "12px",
+                        fontWeight: 700,
+                        color: "var(--primary-color, #ff6500)",
+                        background: "rgba(var(--primary-color-rgb, 255, 101, 0), 0.15)",
+                        padding: "4px 12px",
+                        borderRadius: "14px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "7px",
+                          height: "7px",
+                          borderRadius: "50%",
+                          background: "var(--primary-color, #ff6500)",
+                        }}
+                      />{" "}
+                      Live Theme
+                    </span>
+                    <div style={{ fontSize: "11px", color: "var(--muted, #94a3b8)", marginTop: "4px" }}>System wide</div>
+                  </div>
+                </div>
+
+                {/* Progress bar preview */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: 600, color: "var(--text, #1e293b)", marginBottom: "6px" }}>
+                    <span>Accent Progress Fill</span>
+                    <span style={{ color: "var(--primary-color, #ff6500)" }}>78%</span>
+                  </div>
+                  <div style={{ width: "100%", height: "8px", borderRadius: "4px", background: "var(--line, #e2e8f0)", overflow: "hidden" }}>
+                    <div
+                      style={{
+                        width: "78%",
+                        height: "100%",
+                        borderRadius: "4px",
+                        background: `linear-gradient(90deg, var(--primary-color, #ff6500), var(--primary-hover, #cc5200))`,
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

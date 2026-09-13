@@ -39,7 +39,8 @@ export default function LoginPage() {
             await login(
                 accountType,
                 email,
-                password
+                password,
+                rememberMe
             );
 
             // Redirect based on account type

@@ -14,9 +14,39 @@ const api = axios.create({
 // REQUEST INTERCEPTOR
 // ========================================
 
+function getAuthToken() {
+  return (
+    sessionStorage.getItem("mone_access_token") ||
+    (localStorage.getItem("mone_remember_me") === "true"
+      ? localStorage.getItem("mone_access_token")
+      : null)
+  );
+}
+
+function getRefreshToken() {
+  return (
+    sessionStorage.getItem("mone_refresh_token") ||
+    (localStorage.getItem("mone_remember_me") === "true"
+      ? localStorage.getItem("mone_refresh_token")
+      : null)
+  );
+}
+
+function setAuthToken(token) {
+  if (sessionStorage.getItem("mone_access_token")) {
+    sessionStorage.setItem("mone_access_token", token);
+  }
+  if (
+    localStorage.getItem("mone_remember_me") === "true" &&
+    localStorage.getItem("mone_access_token")
+  ) {
+    localStorage.setItem("mone_access_token", token);
+  }
+}
+
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("mone_access_token");
+    const token = getAuthToken();
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -32,31 +62,26 @@ api.interceptors.request.use(
 // ========================================
 // TOKEN REFRESH
 // ========================================
-// The access token expires quickly (server default 15 min,
-// ACCESS_TOKEN_EXPIRES_IN) by design, but the refresh token lasts 30
-// days — that's what /auth/refresh (auth.controller.js:refreshAccessToken)
-// is for. Previously nothing on the frontend ever called it, so every
-// 401 from an expired access token was treated as "session invalid" and
-// force-logged the user out well before the refresh token itself had
-// expired. This queues concurrent requests behind a single in-flight
-// refresh so five simultaneous 401s don't fire five refresh calls, and
-// only logs out if the refresh itself is rejected (refresh token
-// expired/revoked, session gone).
 
 let refreshPromise = null;
 
 function performLogout() {
-  localStorage.removeItem("mone_access_token");
-  localStorage.removeItem("mone_refresh_token");
-  localStorage.removeItem("mone_session_id");
-  localStorage.removeItem("mone_account_type");
-  localStorage.removeItem("mone_user");
-
-  // Remove legacy keys too
-  localStorage.removeItem("user_token");
-  localStorage.removeItem("user_info");
-  localStorage.removeItem("mone_admin_token");
-  localStorage.removeItem("mone_admin_user");
+  const keys = [
+    "mone_access_token",
+    "mone_refresh_token",
+    "mone_session_id",
+    "mone_account_type",
+    "mone_user",
+    "mone_remember_me",
+    "user_token",
+    "user_info",
+    "mone_admin_token",
+    "mone_admin_user",
+  ];
+  keys.forEach((k) => {
+    sessionStorage.removeItem(k);
+    localStorage.removeItem(k);
+  });
 
   if (window.location.pathname !== "/login") {
     window.location.href = "/login";
@@ -66,7 +91,7 @@ function performLogout() {
 /** Plain axios, not the `api` instance — avoids re-entering these
  * interceptors while refreshing. */
 function requestNewAccessToken() {
-  const refreshToken = localStorage.getItem("mone_refresh_token");
+  const refreshToken = getRefreshToken();
 
   if (!refreshToken) {
     return Promise.reject(new Error("No refresh token available"));
@@ -75,7 +100,7 @@ function requestNewAccessToken() {
   return axios
     .post(`${baseURL}/auth/refresh`, { refreshToken })
     .then(({ data }) => {
-      localStorage.setItem("mone_access_token", data.accessToken);
+      setAuthToken(data.accessToken);
       return data.accessToken;
     });
 }

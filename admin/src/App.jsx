@@ -8,9 +8,10 @@ import SuperAdminRoute from "./components/SuperAdminRoute.jsx";
 import UserLayout from "./layouts/UserLayout.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";
 
-import { getAccountType } from "./services/auth.service.js";
+import { getAccountType, getStoredToken } from "./services/auth.service.js";
 
 // PUBLIC PAGES
+import LandingPage from "./pages/LandingPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
@@ -85,7 +86,7 @@ function AdminOnlyRoute() {
 }
 
 function RootRedirect() {
-  const token = localStorage.getItem("mone_access_token");
+  const token = getStoredToken();
   const accountType = getAccountType();
 
   if (!token) {
@@ -329,12 +330,12 @@ export default function App() {
       </Route>
 
       {/* =========================================
-          ROOT REDIRECT
+          LANDING PAGE
       ========================================= */}
 
       <Route
         path="/"
-        element={<RootRedirect />}
+        element={<LandingPage />}
       />
 
       {/* =========================================

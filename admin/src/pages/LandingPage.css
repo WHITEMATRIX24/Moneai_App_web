@@ -1,0 +1,980 @@
+/* admin/src/pages/LandingPage.css
+   Mone AI — "Instrument Panel" concept.
+   The subject is an executive command center reading out finance, health,
+   and AI activity in real time — so the page borrows the vernacular of a
+   panel of live instruments rather than a generic gradient hero.
+*/
+
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+:root {
+  --ink: #10131a;
+  --ink-2: #1a1f29;
+  --ink-3: #232a36;
+  --paper: #eef0ef;
+  --paper-2: #ffffff;
+  --line-on-ink: rgba(233, 231, 223, 0.14);
+  --line-on-paper: rgba(16, 19, 26, 0.1);
+  --text-on-ink: #ece9e1;
+  --text-on-ink-muted: rgba(236, 233, 225, 0.62);
+  --text-on-paper: #171a20;
+  --text-on-paper-muted: #5c6169;
+
+  --brand-orange: #ff6500;
+  --brand-orange-hover: #ff7a22;
+  --brand-orange-soft: rgba(255, 101, 0, 0.14);
+  --brand-orange-glow: rgba(255, 101, 0, 0.32);
+
+  --accent-finance: var(--brand-orange);
+  --accent-finance-soft: var(--brand-orange-soft);
+  --accent-health: #3e8e7e;
+  --accent-health-soft: rgba(62, 142, 126, 0.14);
+  --accent-ai: #6f68ab;
+  --accent-ai-soft: rgba(111, 104, 171, 0.14);
+
+  --font-display: "Source Serif 4", Georgia, serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.wave-landing-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--ink);
+  font-family: var(--font-body);
+  color: var(--text-on-ink);
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent-finance);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   1. HERO SECTION
+============================================================ */
+.wave-hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: var(--ink);
+}
+
+/* Quiet instrument-panel backdrop: a soft glow behind the headline and a
+   fine dot grid, standing in for the "wave strata" gradient. */
+.wave-svg-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 950px 640px at 14% 18%, rgba(255, 101, 0, 0.18), transparent 62%),
+    radial-gradient(ellipse 650px 500px at 86% 36%, rgba(255, 101, 0, 0.08), transparent 66%),
+    radial-gradient(circle, rgba(236, 233, 225, 0.07) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px;
+  background-position: 0 0, 0 0, 0 0;
+}
+
+.wave-svg-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, var(--ink) 100%);
+}
+
+.wave-bg-svg {
+  display: none;
+}
+
+/* ============================================================
+   HEADER
+============================================================ */
+.wave-header {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 56px;
+  box-sizing: border-box;
+  background: transparent;
+  gap: 32px;
+}
+
+.wave-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.wave-brand-monogram {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--ink-3);
+  border: 1px solid var(--line-on-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-diamond {
+  width: 11px;
+  height: 11px;
+  background: var(--accent-finance);
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+
+.wave-brand-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.wave-brand-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-on-ink);
+  line-height: 1.15;
+}
+
+.brand-dot {
+  color: var(--brand-orange);
+  font-weight: 900;
+}
+
+.wave-brand-subtitle {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--text-on-ink-muted);
+}
+
+/* Nav: plain links with an underline cue instead of a frosted pill */
+.wave-nav-capsule {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+}
+
+.wave-nav-link {
+  position: relative;
+  color: var(--text-on-ink-muted);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  padding-bottom: 4px;
+  transition: color 0.18s ease;
+}
+
+.wave-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: 0;
+  height: 1px;
+  background: var(--accent-finance);
+  transition: right 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wave-nav-link:hover {
+  color: var(--text-on-ink);
+}
+
+.wave-nav-link:hover::after {
+  right: 0;
+}
+
+.wave-search-icon-btn {
+  display: none;
+}
+
+/* Header actions */
+.wave-header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.wave-auth-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wave-header-btn {
+  font-family: var(--font-body);
+}
+
+.wave-header-btn.btn-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--line-on-ink);
+  color: var(--text-on-ink);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.18s ease, background 0.18s ease;
+  cursor: pointer;
+}
+
+.wave-header-btn.btn-login:hover {
+  border-color: rgba(236, 233, 225, 0.4);
+  background: rgba(236, 233, 225, 0.04);
+}
+
+.wave-header-btn.btn-signup,
+.wave-header-btn.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: 6px;
+  background: var(--brand-orange);
+  border: 1px solid var(--brand-orange);
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px var(--brand-orange-glow);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.wave-header-btn.btn-signup:hover,
+.wave-header-btn.btn-primary:hover {
+  transform: translateY(-1px);
+  background: var(--brand-orange-hover);
+  box-shadow: 0 8px 20px var(--brand-orange-glow);
+}
+
+/* ============================================================
+   HERO BODY — two columns: copy, then a live-status instrument panel
+============================================================ */
+.wave-hero-body {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 620px) minmax(320px, 400px);
+  gap: 64px;
+  align-items: center;
+  padding: 20px 56px 40px;
+  max-width: 1360px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.wave-hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.wave-main-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 4.4vw, 3.9rem);
+  font-weight: 600;
+  line-height: 1.08;
+  margin: 0 0 20px 0;
+  color: var(--text-on-ink);
+  letter-spacing: -0.01em;
+}
+
+.wave-sub-title {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 14px;
+  color: var(--accent-finance);
+  letter-spacing: 0.01em;
+}
+
+.wave-description {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--text-on-ink-muted);
+  max-width: 46ch;
+  margin: 0 0 36px 0;
+  font-weight: 400;
+}
+
+.wave-action-row {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.wave-secondary-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 26px;
+  border-radius: 6px;
+  background: var(--brand-orange);
+  border: 1px solid var(--brand-orange);
+  color: #ffffff;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 18px var(--brand-orange-glow);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.wave-secondary-pill-btn:hover {
+  transform: translateY(-2px);
+  background: var(--brand-orange-hover);
+  box-shadow: 0 10px 26px var(--brand-orange-glow);
+}
+
+.wave-outline-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 4px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line-on-ink);
+  color: var(--text-on-ink);
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease;
+}
+
+.wave-outline-pill-btn:hover {
+  border-color: var(--text-on-ink);
+  color: #ffffff;
+}
+
+/* Slider dots are superseded by the readout panel; kept hidden so no
+   markup needs to be torn out downstream. */
+.wave-slider-dots {
+  display: none;
+}
+
+/* ---- Instrument panel: replaces the empty right half of the hero ---- */
+.wave-readout-panel {
+  border: 1px solid var(--line-on-ink);
+  border-radius: 10px;
+  background: rgba(236, 233, 225, 0.03);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wave-readout-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 14px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--line-on-ink);
+}
+
+.wave-readout-heading span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-on-ink);
+}
+
+.wave-readout-heading .readout-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4caf7d;
+  box-shadow: 0 0 0 3px rgba(76, 175, 125, 0.18);
+}
+
+.readout-module {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 8px;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  background: transparent;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.readout-module:hover {
+  background: rgba(236, 233, 225, 0.04);
+}
+
+.readout-module.active {
+  background: rgba(236, 233, 225, 0.05);
+}
+
+.readout-module[data-tone="finance"].active,
+.readout-module[data-tone="finance"]:hover {
+  border-left-color: var(--accent-finance);
+}
+
+.readout-module[data-tone="health"].active,
+.readout-module[data-tone="health"]:hover {
+  border-left-color: var(--accent-health);
+}
+
+.readout-module[data-tone="ai"].active,
+.readout-module[data-tone="ai"]:hover {
+  border-left-color: var(--accent-ai);
+}
+
+.readout-module-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.readout-module-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-on-ink);
+}
+
+.readout-module[data-tone="finance"] .readout-module-name svg {
+  color: var(--accent-finance);
+}
+
+.readout-module[data-tone="health"] .readout-module-name svg {
+  color: var(--accent-health);
+}
+
+.readout-module[data-tone="ai"] .readout-module-name svg {
+  color: var(--accent-ai);
+}
+
+.readout-module-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.readout-metric {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--text-on-ink);
+}
+
+.readout-metric-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-on-ink-muted);
+}
+
+.readout-bar-track {
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(236, 233, 225, 0.1);
+  overflow: hidden;
+}
+
+.readout-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+}
+
+.readout-module[data-tone="finance"] .readout-bar-fill {
+  background: var(--accent-finance);
+  width: 72%;
+}
+
+.readout-module[data-tone="health"] .readout-bar-fill {
+  background: var(--accent-health);
+  width: 91%;
+}
+
+.readout-module[data-tone="ai"] .readout-bar-fill {
+  background: var(--accent-ai);
+  width: 58%;
+}
+
+.readout-footer-link {
+  margin-top: 10px;
+  padding: 10px 14px 2px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-on-ink-muted);
+  background: none;
+  border: none;
+  border-top: 1px solid var(--line-on-ink);
+  padding-top: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.readout-footer-link:hover {
+  color: var(--text-on-ink);
+}
+
+/* Scroll hint */
+.wave-scroll-hint {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 20px 28px;
+  cursor: pointer;
+  color: var(--text-on-ink-muted);
+  font-size: 0.84rem;
+  font-weight: 500;
+  transition: color 0.2s;
+  user-select: none;
+}
+
+.wave-scroll-hint:hover {
+  color: var(--text-on-ink);
+}
+
+.bounce-arrow {
+  animation: waveBounce 2s infinite ease-in-out;
+}
+
+@keyframes waveBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
+/* ============================================================
+   2. PLATFORM BRIEF SECTION
+============================================================ */
+.wave-brief-section {
+  position: relative;
+  background: var(--paper);
+  color: var(--text-on-paper);
+  padding: 100px 56px 110px;
+}
+
+.brief-container {
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.brief-header {
+  max-width: 620px;
+  margin: 0 0 56px;
+}
+
+.brief-pill {
+  display: none;
+}
+
+.brief-header h2 {
+  font-family: var(--font-body);
+  font-size: clamp(1.9rem, 3vw, 2.5rem);
+  font-weight: 700;
+  color: var(--text-on-paper);
+  margin: 0 0 14px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.brief-header p {
+  font-size: 1.05rem;
+  color: var(--text-on-paper-muted);
+  line-height: 1.65;
+  margin: 0;
+  max-width: 56ch;
+}
+
+/* Tabs */
+.brief-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 44px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--line-on-paper);
+}
+
+.brief-tab-btn {
+  padding: 10px 4px;
+  margin-right: 22px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-on-paper-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease;
+  transform: translateY(1px);
+}
+
+.brief-tab-btn:hover {
+  color: var(--text-on-paper);
+}
+
+.brief-tab-btn.active {
+  color: var(--text-on-paper);
+  border-bottom-color: var(--accent-finance);
+}
+
+/* Cards */
+.brief-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line-on-paper);
+  border: 1px solid var(--line-on-paper);
+  margin-bottom: 56px;
+}
+
+.brief-card {
+  background: var(--paper-2);
+  padding: 34px 30px;
+  display: flex;
+  flex-direction: column;
+  border-left: 3px solid transparent;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.card-finance {
+  border-left-color: var(--accent-finance);
+}
+
+.card-health {
+  border-left-color: var(--accent-health);
+}
+
+.card-ai {
+  border-left-color: var(--accent-ai);
+}
+
+.brief-card:hover {
+  background: #fbfbf9;
+}
+
+.brief-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  border: 1px solid var(--line-on-paper);
+}
+
+.card-finance .brief-card-icon {
+  color: var(--accent-finance);
+}
+
+.card-health .brief-card-icon {
+  color: var(--accent-health);
+}
+
+.card-ai .brief-card-icon {
+  color: var(--accent-ai);
+}
+
+.brief-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-on-paper);
+  margin: 0 0 10px;
+}
+
+.brief-card p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-on-paper-muted);
+  margin: 0 0 22px;
+  flex: 1;
+}
+
+.brief-card-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  border-top: 1px solid var(--line-on-paper);
+  padding-top: 18px;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-on-paper);
+}
+
+.highlight-item svg {
+  color: inherit;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* Stats strip: ledger row, not a card */
+.brief-stats-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--line-on-paper);
+  border-bottom: 1px solid var(--line-on-paper);
+  padding: 28px 4px;
+  margin-bottom: 64px;
+}
+
+.stat-unit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-unit strong {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--text-on-paper);
+  line-height: 1.1;
+}
+
+.stat-unit span {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-on-paper-muted);
+}
+
+.stat-sep {
+  width: 1px;
+  height: 34px;
+  background: var(--line-on-paper);
+}
+
+.brief-cta-banner {
+  background: linear-gradient(180deg, rgba(255, 101, 0, 0.07) 0%, var(--ink) 100%), var(--ink);
+  border-top: 2px solid var(--brand-orange);
+  border-radius: 12px;
+  padding: 52px 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  color: var(--text-on-ink);
+}
+
+.banner-text h3 {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.banner-text p {
+  font-size: 1rem;
+  color: var(--text-on-ink-muted);
+  margin: 0;
+  max-width: 520px;
+  line-height: 1.55;
+}
+
+.banner-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 30px;
+  border-radius: 6px;
+  background: var(--brand-orange);
+  color: #ffffff;
+  font-size: 0.98rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px var(--brand-orange-glow);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.banner-primary-btn:hover {
+  transform: translateY(-2px);
+  background: var(--brand-orange-hover);
+  box-shadow: 0 12px 28px var(--brand-orange-glow);
+}
+
+/* ============================================================
+   3. FOOTER
+============================================================ */
+.wave-footer {
+  background: var(--ink);
+  color: var(--text-on-ink);
+  padding: 40px 56px;
+  border-top: 1px solid var(--line-on-ink);
+}
+
+.footer-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.footer-col-brand strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+
+.footer-col-brand span {
+  font-size: 0.78rem;
+  color: var(--text-on-ink-muted);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.footer-col-brand p {
+  font-size: 0.78rem;
+  color: rgba(236, 233, 225, 0.4);
+  margin: 0;
+}
+
+.footer-col-links {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  flex-wrap: wrap;
+}
+
+.footer-col-links a {
+  color: var(--text-on-ink-muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.footer-col-links a:hover {
+  color: var(--text-on-ink);
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media (max-width: 1100px) {
+  .wave-header {
+    padding: 24px 32px;
+  }
+
+  .wave-nav-capsule {
+    display: none;
+  }
+
+  .wave-hero-body {
+    grid-template-columns: 1fr;
+    padding: 20px 32px 40px;
+    gap: 40px;
+  }
+
+  .wave-readout-panel {
+    max-width: 460px;
+  }
+
+  .brief-section,
+  .wave-brief-section {
+    padding: 80px 32px 90px;
+  }
+
+  .brief-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .brief-cta-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 40px 32px;
+  }
+}
+
+@media (max-width: 640px) {
+  .wave-header {
+    padding: 20px 20px;
+  }
+
+  .wave-hero-body {
+    padding: 12px 20px 32px;
+  }
+
+  .wave-main-title {
+    font-size: 2.3rem;
+  }
+
+  .wave-action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wave-secondary-pill-btn,
+  .wave-outline-pill-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .wave-brief-section {
+    padding: 64px 20px 72px;
+  }
+
+  .brief-stats-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .stat-sep {
+    display: none;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

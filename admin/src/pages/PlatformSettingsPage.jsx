@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { toast } from "react-toastify";
 
 import {
   FaSave,
@@ -24,6 +25,7 @@ import {
 import { adminService } from "../services/admin.service.js";
 import PageHeader from "../components/PageHeader.jsx";
 import CustomSelect from "../components/CustomSelect.jsx";
+import ColorWheelPicker from "../components/theme/ColorWheelPicker.jsx";
 import "./PlatformSettingsPage.css";
 
 
@@ -80,6 +82,7 @@ const COLOR_PRESETS = [
 
 export default function PlatformSettingsPage() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [savedSettings, setSavedSettings] = useState(null);
 
   const [activeSection, setActiveSection] = useState("general");
 
@@ -87,6 +90,11 @@ export default function PlatformSettingsPage() {
   const [saving, setSaving] = useState(false);
 
   const [message, setMessage] = useState("");
+
+  const hasChanges = useMemo(() => {
+    if (!savedSettings) return false;
+    return JSON.stringify(settings) !== JSON.stringify(savedSettings);
+  }, [settings, savedSettings]);
 
 
   /* =======================================================
@@ -149,6 +157,7 @@ export default function PlatformSettingsPage() {
       };
 
       setSettings(finalSettings);
+      setSavedSettings(finalSettings);
 
       applyTheme(finalSettings.themeColor);
       applyAppearanceMode(finalSettings.themeMode);
@@ -158,9 +167,18 @@ export default function PlatformSettingsPage() {
       console.error("Failed to load settings:", error);
 
       const fallbackTheme = localStorage.getItem("mone_theme_color") || DEFAULT_SETTINGS.themeColor;
+      const fallbackSettings = {
+        ...DEFAULT_SETTINGS,
+        themeColor: fallbackTheme,
+        themeMode: localStorage.getItem("mone_theme_mode") || DEFAULT_SETTINGS.themeMode,
+        fontSize: Number(localStorage.getItem("mone_font_size")) || DEFAULT_SETTINGS.fontSize,
+      };
+      setSettings(fallbackSettings);
+      setSavedSettings(fallbackSettings);
+
       applyTheme(fallbackTheme);
-      applyAppearanceMode(localStorage.getItem("mone_theme_mode") || DEFAULT_SETTINGS.themeMode);
-      applyFontSize(Number(localStorage.getItem("mone_font_size")) || DEFAULT_SETTINGS.fontSize);
+      applyAppearanceMode(fallbackSettings.themeMode);
+      applyFontSize(fallbackSettings.fontSize);
 
     } finally {
       setLoading(false);
@@ -351,9 +369,11 @@ function applyFontSize(size) {
       }
 
 
+      setSavedSettings(settings);
       setMessage(
         "Settings saved successfully."
       );
+      toast.success("Settings saved successfully.");
 
     } catch (error) {
       console.error(
@@ -364,6 +384,7 @@ function applyFontSize(size) {
       setMessage(
         "Settings updated locally."
       );
+      toast.error("Failed to save settings.");
 
     } finally {
       setSaving(false);
@@ -372,37 +393,35 @@ function applyFontSize(size) {
 
 
   /* =======================================================
-     RESET SETTINGS
+     RESET / REVERT SETTINGS
   ======================================================= */
 
   function resetSettings() {
-  setSettings(DEFAULT_SETTINGS);
+    const target = savedSettings || DEFAULT_SETTINGS;
+    setSettings(target);
 
-  applyTheme(DEFAULT_SETTINGS.themeColor);
+    applyTheme(target.themeColor);
+    applyAppearanceMode(target.themeMode);
+    applyFontSize(target.fontSize);
 
-  applyAppearanceMode(DEFAULT_SETTINGS.themeMode);
+    localStorage.setItem(
+      "mone_theme_color",
+      target.themeColor
+    );
+    localStorage.setItem(
+      "mone_theme_mode",
+      target.themeMode
+    );
+    localStorage.setItem(
+      "mone_font_size",
+      String(target.fontSize)
+    );
 
-  applyFontSize(DEFAULT_SETTINGS.fontSize);
-
-  localStorage.setItem(
-    "mone_theme_color",
-    DEFAULT_SETTINGS.themeColor
-  );
-
-  localStorage.setItem(
-    "mone_theme_mode",
-    DEFAULT_SETTINGS.themeMode
-  );
-
-  localStorage.setItem(
-    "mone_font_size",
-    String(DEFAULT_SETTINGS.fontSize)
-  );
-
-  setMessage(
-    "Settings reset to default values."
-  );
-}
+    setMessage(
+      "Changes reverted."
+    );
+    toast.info("Changes reverted.");
+  }
   /* =======================================================
      SIDEBAR ITEMS
   ======================================================= */
@@ -718,134 +737,117 @@ function applyFontSize(size) {
 
               {/* COLOUR */}
 
-              <div className="ps-colour-section">
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                  gap: "24px",
+                  alignItems: "stretch",
+                  marginBottom: "28px",
+                }}
+              >
+                <ColorWheelPicker
+                  value={settings.themeColor}
+                  onChange={(color) => selectColor(color)}
+                  size={230}
+                />
 
-                <div className="ps-colour-left">
-
-                  <h3>
-                    Choose primary colour
-                  </h3>
-
-                  <div className="ps-colour-picker">
-
-                    <input
-                      type="color"
-                      value={settings.themeColor}
-                      onChange={(e) =>
-                        selectColor(
-                          e.target.value
-                        )
-                      }
-                    />
-
+                {/* LIVE PREVIEW */}
+                <div
+                  className="ps-live-preview"
+                  style={{
+                    margin: 0,
+                    borderRadius: "18px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    padding: "24px",
+                    background: "var(--bg-card, #ffffff)",
+                    border: "1px solid var(--line, #e2e8f0)",
+                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.04)",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  <div className="ps-preview-header">
                     <div>
-                      <strong>
-                        {settings.themeColor.toUpperCase()}
+                      <strong style={{ fontSize: "15px", color: "var(--text, #1e293b)", display: "block" }}>
+                        Live System Preview
                       </strong>
-
-                      <span>
-                        Click the colour box to
-                        choose any colour.
+                      <span style={{ fontSize: "12px", color: "var(--muted, #64748b)" }}>
+                        Updates all dashboard components immediately
                       </span>
                     </div>
-
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        padding: "4px 10px",
+                        borderRadius: "12px",
+                        background: "rgba(var(--primary-color-rgb, 255, 101, 0), 0.12)",
+                        color: "var(--primary-color, #ff6500)",
+                      }}
+                    >
+                      Realtime
+                    </span>
                   </div>
 
-                </div>
+                  <div className="ps-preview-body" style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      className="ps-preview-button"
+                      style={{
+                        backgroundColor: settings.themeColor,
+                        padding: "10px 20px",
+                        borderRadius: "10px",
+                        fontWeight: 700,
+                        fontSize: "13px",
+                        color: "#fff",
+                        border: "none",
+                        boxShadow: "0 4px 14px rgba(var(--primary-color-rgb, 255, 101, 0), 0.35)",
+                      }}
+                    >
+                      Primary Button
+                    </button>
 
-
-                <div className="ps-quick-colours">
-
-                  <h3>
-                    Quick colours
-                  </h3>
-
-                  <div className="ps-colour-grid">
-
-                    {COLOR_PRESETS.map(
-                      (color) => (
-                        <button
-                          key={color}
-                          type="button"
-                          className={
-                            settings.themeColor.toLowerCase() ===
-                            color.toLowerCase()
-                              ? "ps-colour-swatch active"
-                              : "ps-colour-swatch"
-                          }
-                          style={{
-                            backgroundColor:
-                              color,
-                          }}
-                          onClick={() =>
-                            selectColor(
-                              color
-                            )
-                          }
-                          aria-label={`Select ${color}`}
-                        />
-                      )
-                    )}
-
+                    <span
+                      className="ps-preview-badge"
+                      style={{
+                        color: settings.themeColor,
+                        backgroundColor: `rgba(var(--primary-color-rgb, 255, 101, 0), 0.15)`,
+                        padding: "4px 12px",
+                        borderRadius: "12px",
+                        fontSize: "12px",
+                        fontWeight: 700,
+                      }}
+                    >
+                      ● Active Badge
+                    </span>
                   </div>
-
-                </div>
-
-              </div>
-
-
-              {/* LIVE PREVIEW */}
-
-              <div className="ps-live-preview">
-
-                <div className="ps-preview-header">
-                  <span>
-                    Live Preview
-                  </span>
-
-                  <small>
-                    Updates instantly
-                  </small>
-                </div>
-
-
-                <div className="ps-preview-body">
-
-                  <button
-                    type="button"
-                    className="ps-preview-button"
-                    style={{
-                      backgroundColor:
-                        settings.themeColor,
-                    }}
-                  >
-                    Primary Button
-                  </button>
-
-
-                  <span
-                    className="ps-preview-badge"
-                    style={{
-                      color:
-                        settings.themeColor,
-                      backgroundColor:
-                        `${settings.themeColor}18`,
-                    }}
-                  >
-                    Active
-                  </span>
-
 
                   <div
-                    className="ps-preview-line"
                     style={{
-                      backgroundColor:
-                        settings.themeColor,
+                      padding: "14px 16px",
+                      borderRadius: "12px",
+                      background: "var(--primary-bg-soft, rgba(var(--primary-color-rgb, 255, 101, 0), 0.06))",
+                      border: "1px solid var(--primary-border, rgba(var(--primary-color-rgb, 255, 101, 0), 0.2))",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
-                  />
-
+                  >
+                    <div>
+                      <div style={{ fontSize: "11px", color: "var(--muted, #64748b)", fontWeight: 600 }}>Active Accent Hex</div>
+                      <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--primary-color, #ff6500)" }}>
+                        {settings.themeColor.toUpperCase()}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right", fontSize: "12px", color: "var(--muted, #64748b)" }}>
+                      Applied to all platform modules
+                    </div>
+                  </div>
                 </div>
-
               </div>
 
 
@@ -1336,59 +1338,51 @@ function applyFontSize(size) {
 
 
       {/* ===================================================
-          SAVE BAR
+          SAVE BAR (APPEARS ON CHANGE, DISAPPEARS ON SAVE)
       =================================================== */}
 
-      <div className="ps-save-bar">
+      {hasChanges && (
+        <div className="ps-save-bar">
+          <div className="ps-save-message">
+            <div className="ps-save-icon">
+              <FaSave />
+            </div>
 
-        <div className="ps-save-message">
+            <div>
+              <strong>
+                Unsaved changes
+              </strong>
 
-          <div className="ps-save-icon">
-            <FaSave />
+              <span>
+                You have unsaved changes. Click Save Changes to apply them across the Admin Dashboard.
+              </span>
+            </div>
           </div>
 
-          <div>
-            <strong>
-              Configuration changes
-            </strong>
+          <div className="ps-save-actions">
+            <button
+              type="button"
+              className="ps-reset-button"
+              onClick={resetSettings}
+            >
+              <FaUndo />
+              Revert
+            </button>
 
-            <span>
-              {message ||
-                "Save your changes to apply them across the Admin Dashboard."}
-            </span>
+            <button
+              type="button"
+              className="ps-save-button"
+              onClick={saveSettings}
+              disabled={saving}
+            >
+              <FaSave />
+              {saving
+                ? "Saving..."
+                : "Save Changes"}
+            </button>
           </div>
-
         </div>
-
-
-        <div className="ps-save-actions">
-
-          <button
-            type="button"
-            className="ps-reset-button"
-            onClick={resetSettings}
-          >
-            <FaUndo />
-            Reset
-          </button>
-
-
-          <button
-            type="button"
-            className="ps-save-button"
-            onClick={saveSettings}
-            disabled={saving}
-          >
-            <FaSave />
-
-            {saving
-              ? "Saving..."
-              : "Save Changes"}
-          </button>
-
-        </div>
-
-      </div>
+      )}
 
     </div>
   );
