@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Cpu, RefreshCw, Layers } from "lucide-react";
 import { adminService } from "../services/admin.service.js";
+import { useCurrency, formatCostFromUSD } from "../utils/currency.js";
 
 /* =============================================================================
    HELPERS
@@ -21,9 +22,6 @@ function formatTokens(value) {
   return formatNumber(num);
 }
 
-function formatCurrency(value) {
-  return `$${Number(value || 0).toFixed(2)}`;
-}
 
 const DEFAULT_MODELS = [
   {
@@ -88,6 +86,7 @@ export default function AIModelUsage({
   data: externalData,
   loading: externalLoading,
 }) {
+  const { formatCostFromUSD: fmtCost } = useCurrency();
   const [usage, setUsage] = useState(externalData ?? []);
   const [loading, setLoading] = useState(externalLoading ?? true);
 
@@ -121,9 +120,20 @@ export default function AIModelUsage({
     };
   }, [externalData, externalLoading]);
 
+  const formatCostItem = useCallback(
+    (value) => {
+      const num = typeof value === "number" ? value : parseFloat(String(value || 0).replace(/[^0-9.-]+/g, ""));
+      return fmtCost(isNaN(num) ? 0 : num);
+    },
+    [fmtCost]
+  );
+
   const modelsList = useMemo(() => {
     if (!Array.isArray(usage) || usage.length === 0) {
-      return DEFAULT_MODELS;
+      return DEFAULT_MODELS.map((m) => ({
+        ...m,
+        cost: formatCostItem(m.cost),
+      }));
     }
 
     // Detect pre-aggregated byModel format: items have { _id, count, totalTokens, cost }
@@ -144,7 +154,7 @@ export default function AIModelUsage({
           tokens: formatTokens(m.totalTokens),
           share,
           latency: "—",
-          cost: formatCurrency(m.cost),
+          cost: formatCostItem(m.cost),
           badge,
         };
       });
@@ -189,11 +199,11 @@ export default function AIModelUsage({
         tokens: formatTokens(m.tokens),
         share,
         latency: "—",
-        cost: formatCurrency(m.cost),
+        cost: formatCostItem(m.cost),
         badge,
       };
     });
-  }, [usage]);
+  }, [usage, formatCostItem]);
 
   return (
     <section className="ai-subdivision-card" id="module-model-usage">

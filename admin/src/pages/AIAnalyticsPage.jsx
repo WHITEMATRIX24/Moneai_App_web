@@ -65,6 +65,7 @@ import AICostChart from "../components/AICostChart.jsx";
 import AIErrorTable from "../components/AIErrorTable.jsx";
 import AIModelUsage from "../components/AIModelUsage.jsx";
 import AIFeatureUsage from "../components/AIFeatureUsage.jsx";
+import { useCurrency, formatCostFromUSD } from "../utils/currency.js";
 
 // =============================================================================
 // STATE PRIMITIVES: Skeletons, Error, and Empty States
@@ -182,6 +183,7 @@ export function AIKpiCards({
   error = null,
   onRetry,
 }) {
+  const { formatCostFromUSD } = useCurrency();
   return (
     <section className="ai-subdivision-card" id="module-kpi-cards">
       <div className="ai-subdivision-header">
@@ -217,6 +219,24 @@ export function AIKpiCards({
             const isLatency = m.id === "latency";
             const isPositive = isLatency ? isDown : !isDown;
 
+            let displayValue = m.value;
+            let displaySubtext = m.subtext;
+
+            if (m.id === "cost") {
+              const usdVal = typeof m.rawCost === "number"
+                ? m.rawCost
+                : parseFloat(String(m.value).replace(/[^0-9.-]+/g, ""));
+              if (!isNaN(usdVal)) {
+                displayValue = formatCostFromUSD(usdVal);
+              }
+              if (displaySubtext && displaySubtext.includes("$")) {
+                displaySubtext = displaySubtext.replace(/\$([0-9.]+)/g, (match, val) => {
+                  const num = parseFloat(val);
+                  return isNaN(num) ? match : formatCostFromUSD(num, { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+                });
+              }
+            }
+
             return (
               <div key={m.id} className="ai-kpi-item">
                 <div className="ai-kpi-item__top">
@@ -237,11 +257,11 @@ export function AIKpiCards({
                   </span>
                 </div>
 
-                <div className="ai-kpi-item__value">{m.value}</div>
+                <div className="ai-kpi-item__value">{displayValue}</div>
                 <div className="ai-kpi-item__label" title={m.label}>{m.label}</div>
 
                 <div className="ai-kpi-item__footer">
-                  <span className="ai-kpi-item__subtext" title={m.subtext}>{m.subtext}</span>
+                  <span className="ai-kpi-item__subtext" title={displaySubtext}>{displaySubtext}</span>
                   {m.spark && <Sparkline points={m.spark} up={isPositive} />}
                 </div>
               </div>
@@ -799,6 +819,7 @@ export function AIRequestTypeBreakdown({ data, loading }) {
 // =============================================================================
 
 export function AIRecentIngestionFeed({ data, loading }) {
+  const { formatCostFromUSD } = useCurrency();
   const list = data?.recentRequests || [];
 
   return (
@@ -862,7 +883,7 @@ export function AIRecentIngestionFeed({ data, loading }) {
                     </td>
                     <td>
                       <span style={{ fontSize: "11.5px", fontWeight: 600, color: "var(--muted)" }}>
-                        ${(r.estimatedCost || 0).toFixed(4)}
+                        {formatCostFromUSD(r.estimatedCost || 0, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
                       </span>
                     </td>
                   </tr>
@@ -1439,6 +1460,7 @@ export function AIRecentRequests({
 //   - Connected live to /admin/ai/users aggregation
 // =============================================================================
 export function AIUserUsage({ data: externalData, loading: externalLoading }) {
+  const { formatCostFromUSD } = useCurrency();
   const [usersData, setUsersData] = useState(externalData ?? null);
   const [loading, setLoading] = useState(externalLoading ?? (externalData === undefined || externalData === null));
   const [period, setPeriod] = useState("30d");
@@ -1651,7 +1673,7 @@ export function AIUserUsage({ data: externalData, loading: externalLoading }) {
 
         <div className="ai-summary-card ai-summary-cost">
           <span>Estimated Spend</span>
-          <strong>${Number(totalCostCount).toFixed(2)}</strong>
+          <strong>{formatCostFromUSD(totalCostCount)}</strong>
           <small>{hasLive ? "Based on provider token rates" : "↓ 4.2% vs last month"}</small>
         </div>
       </div>
@@ -1822,7 +1844,7 @@ export function AIUserUsage({ data: externalData, loading: externalLoading }) {
 
                   <td>
                     <span className="ai-cost-value">
-                      ${Number(user.cost || 0).toFixed(2)}
+                      {formatCostFromUSD(user.cost || 0)}
                     </span>
                   </td>
 

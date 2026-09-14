@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { DollarSign } from "lucide-react";
 import { adminService } from "../services/admin.service.js";
+import { useCurrency } from "../utils/currency.js";
 
 // =============================================================================
 // SUBDIVISION 5: AI COST CHART
@@ -11,6 +12,7 @@ import { adminService } from "../services/admin.service.js";
 //   - Projected budget runway and cost per 1k tokens
 // =============================================================================
 export default function AICostChart({ data: externalData, loading: externalLoading }) {
+  const { formatCostFromUSD } = useCurrency();
   const [internalData, setInternalData] = useState([]);
   const [internalLoading, setInternalLoading] = useState(true);
 
@@ -43,57 +45,62 @@ export default function AICostChart({ data: externalData, loading: externalLoadi
 
   const rawRecords = externalData !== undefined ? externalData : internalData;
   const loading = externalLoading !== undefined ? externalLoading : internalLoading;
-  const records = Array.isArray(rawRecords) ? rawRecords : [];
 
   const currentMonthRecords = useMemo(() => {
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
 
-    return records.filter((item) => {
-      if (!item?.createdAt) return false;
-      const createdAt = new Date(item.createdAt);
-      return !Number.isNaN(createdAt.getTime()) && createdAt >= monthStart;
+    return rawRecords.filter((item) => {
+      const ts = item?.timestamp || item?.createdAt || item?.date;
+      if (!ts) return false;
+      const d = new Date(ts);
+      return (
+        !Number.isNaN(d.getTime()) &&
+        d.getFullYear() === currentYear &&
+        d.getMonth() === currentMonth
+      );
     });
-  }, [records]);
+  }, [rawRecords]);
 
-  const costBreakdown = useMemo(() => {
-    const totals = new Map();
+  const { totalCost, totalTokens, costBreakdown } = useMemo(() => {
+    let cost = 0;
+    let tokens = 0;
+    const providerMap = {};
 
     currentMonthRecords.forEach((item) => {
-      const provider = item?.provider || item?.model || "Unknown model";
-      const amount = Number(item?.estimatedCost) || 0;
-      totals.set(provider, (totals.get(provider) || 0) + amount);
+      const c = Number(item?.estimatedCost || 0);
+      const t =
+        Number(item?.totalTokens || 0) ||
+        Number(item?.promptTokens || 0) + Number(item?.completionTokens || 0);
+
+      cost += c;
+      tokens += t;
+
+      const rawProvider =
+        item?.provider ||
+        (item?.model && String(item.model).includes("gemini")
+          ? "Google Gemini"
+          : item?.model && String(item.model).includes("gpt")
+          ? "OpenAI"
+          : "Other");
+
+      providerMap[rawProvider] = (providerMap[rawProvider] || 0) + c;
     });
 
-    const total = Array.from(totals.values()).reduce(
-      (sum, amount) => sum + amount,
-      0
-    );
-
-    return Array.from(totals.entries())
+    const breakdown = Object.entries(providerMap)
       .map(([provider, amount]) => ({
         provider,
         amount,
-        percentage: total > 0 ? (amount / total) * 100 : 0,
+        percentage: cost > 0 ? (amount / cost) * 100 : 0,
       }))
       .sort((a, b) => b.amount - a.amount);
+
+    return { totalCost: cost, totalTokens: tokens, costBreakdown: breakdown };
   }, [currentMonthRecords]);
 
-  const totalCost = costBreakdown.reduce(
-    (sum, item) => sum + item.amount,
-    0
-  );
-
-  const totalTokens = currentMonthRecords.reduce(
-    (sum, item) => sum + (Number(item?.totalTokens) || 0),
-    0
-  );
-
-  const monthStart = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    1
-  );
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const daysElapsed = Math.max(
     1,
@@ -135,27 +142,27 @@ export default function AICostChart({ data: externalData, loading: externalLoadi
         <div className="ai-cost-stat">
           <span className="ai-cost-label">Monthly Cumulative</span>
           <strong className="ai-cost-val">
-            ${totalCost.toFixed(2)}
+            {formatCostFromUSD(totalCost)}
           </strong>
           <span className="ai-cost-sub">
-            Budget: ${budget.toFixed(2)} ({Math.min(budgetUsed, 100).toFixed(0)}% used)
+            Budget: {formatCostFromUSD(budget)} ({Math.min(budgetUsed, 100).toFixed(0)}% used)
           </span>
         </div>
 
         <div className="ai-cost-stat">
           <span className="ai-cost-label">Avg Daily Spend</span>
           <strong className="ai-cost-val">
-            ${avgDailySpend.toFixed(2)} / day
+            {formatCostFromUSD(avgDailySpend)} / day
           </strong>
           <span className="ai-cost-sub">
-            Projected end: ${projectedEnd.toFixed(2)}
+            Projected end: {formatCostFromUSD(projectedEnd)}
           </span>
         </div>
 
         <div className="ai-cost-stat">
           <span className="ai-cost-label">Efficiency</span>
           <strong className="ai-cost-val">
-            ${costPer1k.toFixed(4)} / 1k
+            {formatCostFromUSD(costPer1k, { minimumFractionDigits: 4, maximumFractionDigits: 4 })} / 1k
           </strong>
           <span className="ai-cost-sub">
             Based on recorded current-month tokens
@@ -168,7 +175,7 @@ export default function AICostChart({ data: externalData, loading: externalLoadi
           <div>
             <span className="ai-cost-budget-label">Monthly AI Budget</span>
             <div className="ai-cost-budget-value">
-              ${totalCost.toFixed(2)} <span>/ ${budget.toFixed(2)}</span>
+              {formatCostFromUSD(totalCost)} <span>/ {formatCostFromUSD(budget)}</span>
             </div>
           </div>
           <span className="ai-cost-budget-status">
@@ -186,7 +193,7 @@ export default function AICostChart({ data: externalData, loading: externalLoadi
         <div className="ai-cost-budget-footer">
           <span>{budgetUsed.toFixed(1)}% used</span>
           <span>
-            {Math.max(budget - totalCost, 0).toFixed(2)} remaining
+            {formatCostFromUSD(Math.max(budget - totalCost, 0))} remaining
           </span>
         </div>
       </div>
@@ -200,7 +207,7 @@ export default function AICostChart({ data: externalData, loading: externalLoadi
             </span>
           </div>
           <span className="ai-cost-breakdown-total">
-            Total ${totalCost.toFixed(2)}
+            Total {formatCostFromUSD(totalCost)}
           </span>
         </div>
 
@@ -251,7 +258,7 @@ export default function AICostChart({ data: externalData, loading: externalLoadi
                 </div>
 
                 <strong className="provider-amount">
-                  ${item.amount.toFixed(2)}
+                  {formatCostFromUSD(item.amount)}
                 </strong>
 
                 <span className="provider-share">

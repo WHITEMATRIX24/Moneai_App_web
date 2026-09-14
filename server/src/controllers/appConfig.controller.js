@@ -7,7 +7,26 @@ export async function getPublicConfig(req, res) {
       AppConfig.find(),
       FeatureFlag.find(),
     ]);
-    return res.json({ configs, flags });
+
+    const settingsDoc = configs.find((c) => c.key === "platform_settings");
+    const rawSettings = settingsDoc?.value || {};
+
+    const settings = {
+      platformName: rawSettings.platformName || "MONE AI",
+      supportEmail: rawSettings.supportEmail || "support@moneai.com",
+      defaultCurrency: rawSettings.defaultCurrency || "INR",
+      timezone: rawSettings.timezone || "Asia/Kolkata",
+      allowUserRegistration: rawSettings.allowUserRegistration !== false,
+      maintenanceMode: Boolean(rawSettings.maintenanceMode),
+      maintenanceMessage:
+        rawSettings.maintenanceMessage ||
+        "MONE AI is currently undergoing maintenance. Please try again later.",
+      themeColor: rawSettings.themeColor || "#ff6500",
+      themeMode: rawSettings.themeMode || "light",
+      fontSize: rawSettings.fontSize || 16,
+    };
+
+    return res.json({ configs, flags, settings });
   } catch (error) {
     console.error("getPublicConfig error:", error);
     return res.status(500).json({ message: "Failed to get public config" });
@@ -33,12 +52,16 @@ export async function adminGetConfig(req, res) {
 
 export async function upsertConfig(req, res) {
   try {
-    // If saving bulk platform settings (e.g. from PlatformSettingsPage)
-    if (req.body?.settings || (!req.body?.key && req.body?.themeColor) || (!req.body?.key && req.body?.platformName)) {
-      const settingsData = req.body?.settings || req.body;
+    // If saving platform settings (either as { key: "platform_settings", value: ... }, { settings: ... }, or flat object)
+    if (req.body?.key === "platform_settings" || req.body?.settings || (!req.body?.key && typeof req.body === "object")) {
+      const existingDoc = await AppConfig.findOne({ key: "platform_settings" });
+      const currentVal = (existingDoc?.value && typeof existingDoc.value === "object") ? existingDoc.value : {};
+      const newSettings = req.body?.settings || (req.body?.key === "platform_settings" ? req.body.value : req.body);
+      const merged = { ...currentVal, ...newSettings };
+
       const config = await AppConfig.findOneAndUpdate(
         { key: "platform_settings" },
-        { value: settingsData, description: "Platform and Appearance Settings" },
+        { value: merged, description: "Platform and Appearance Settings" },
         { new: true, upsert: true }
       );
       return res.json({ success: true, config, settings: config.value });

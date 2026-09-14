@@ -11357,12 +11357,12 @@ td span {
 }
 
 .notif-dropdown__item.unread {
-  background: #fff9f5;
+  background: rgba(var(--primary-color-rgb, 255, 101, 0), 0.05);
   cursor: pointer;
 }
 
 .notif-dropdown__item.unread:hover {
-  background: #fff3ea;
+  background: rgba(var(--primary-color-rgb, 255, 101, 0), 0.09);
 }
 
 /* Unread dot */

@@ -17,6 +17,7 @@ import {
 
 import api from "../../services/api.js";
 import { getStoredAccount } from "../../services/auth.service.js";
+import { useCurrency } from "../../utils/currency.js";
 
 function getActiveUserId() {
   try {
@@ -27,6 +28,7 @@ function getActiveUserId() {
 }
 
 export default function TransactionsTab({ onRefresh }) {
+  const { formatCurrency } = useCurrency();
   const [transactions, setTransactions] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [importing, setImporting] = useState(false);
@@ -854,10 +856,7 @@ export default function TransactionsTab({ onRefresh }) {
                             : "#2563eb",
                       }}
                     >
-                      ₹{" "}
-                      {Number(
-                        transaction.amount
-                      ).toLocaleString()}
+                      {formatCurrency(transaction.amount)}
                     </td>
 
                     <td

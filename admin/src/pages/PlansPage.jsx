@@ -17,6 +17,38 @@ import {
 
 import { getStoredUser } from "../services/auth.service.js";
 import PageHeader from "../components/PageHeader.jsx";
+import { useCurrency } from "../utils/currency.js";
+
+const CURRENCY_PLAN_PRICES = {
+  INR: {
+    PREMIUM: { monthly: 499, yearly: 4499, yearlyMonthlyEq: 375 },
+    ENTERPRISE: { monthly: 1499, yearly: 13999, yearlyMonthlyEq: 1166 },
+  },
+  USD: {
+    PREMIUM: { monthly: 9, yearly: 79, yearlyMonthlyEq: 6.5 },
+    ENTERPRISE: { monthly: 29, yearly: 249, yearlyMonthlyEq: 20 },
+  },
+  EUR: {
+    PREMIUM: { monthly: 9, yearly: 79, yearlyMonthlyEq: 6.5 },
+    ENTERPRISE: { monthly: 29, yearly: 249, yearlyMonthlyEq: 20 },
+  },
+  GBP: {
+    PREMIUM: { monthly: 8, yearly: 69, yearlyMonthlyEq: 5.75 },
+    ENTERPRISE: { monthly: 25, yearly: 219, yearlyMonthlyEq: 18 },
+  },
+  JPY: {
+    PREMIUM: { monthly: 1200, yearly: 10800, yearlyMonthlyEq: 900 },
+    ENTERPRISE: { monthly: 3800, yearly: 34800, yearlyMonthlyEq: 2900 },
+  },
+  CAD: {
+    PREMIUM: { monthly: 12, yearly: 108, yearlyMonthlyEq: 9 },
+    ENTERPRISE: { monthly: 39, yearly: 349, yearlyMonthlyEq: 29 },
+  },
+  AUD: {
+    PREMIUM: { monthly: 14, yearly: 126, yearlyMonthlyEq: 10.5 },
+    ENTERPRISE: { monthly: 44, yearly: 399, yearlyMonthlyEq: 33 },
+  },
+};
 
 const PLANS = [
   {
@@ -102,6 +134,7 @@ function getPlanKey(user) {
 
 export default function PlansPage() {
   const navigate = useNavigate();
+  const { currency, symbol } = useCurrency();
   const user = getStoredUser();
   const currentPlanKey = getPlanKey(user);
 
@@ -182,7 +215,13 @@ export default function PlansPage() {
           {PLANS.map((plan) => {
             const Icon = plan.icon;
             const isCurrent = plan.key === currentPlanKey;
-            const price = billing === "monthly" ? plan.monthly : plan.yearly;
+            const planPricing = CURRENCY_PLAN_PRICES[currency]?.[plan.key] || {
+              monthly: plan.monthly,
+              yearly: plan.yearly,
+              yearlyMonthlyEq: plan.yearlyMonthlyEq,
+            };
+            const price = billing === "monthly" ? (plan.key === "FREE" ? 0 : planPricing.monthly) : (plan.key === "FREE" ? 0 : planPricing.yearly);
+            const yearlyMonthlyEq = planPricing.yearlyMonthlyEq;
 
             return (
               <article
@@ -228,9 +267,9 @@ export default function PlansPage() {
                   ) : (
                     <div>
                       <div className="plan-card__price-main">
-                        <span className="plan-card__currency">₹</span>
+                        <span className="plan-card__currency">{symbol}</span>
                         <span className="plan-card__amount">
-                          {price.toLocaleString("en-IN")}
+                          {Number(price).toLocaleString()}
                         </span>
                         <span className="plan-card__period">
                           /{billing === "monthly" ? "mo" : "yr"}
@@ -238,7 +277,7 @@ export default function PlansPage() {
                       </div>
                       {billing === "yearly" && (
                         <div className="plan-card__equivalent">
-                          ₹{plan.yearlyMonthlyEq}/mo billed annually
+                          {symbol}{yearlyMonthlyEq}/mo billed annually
                         </div>
                       )}
                     </div>

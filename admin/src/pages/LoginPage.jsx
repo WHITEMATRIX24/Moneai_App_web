@@ -1,22 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../services/auth.service";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+import api from "../services/api";
+import { FiEye, FiEyeOff, FiAlertTriangle, FiShield } from "react-icons/fi";
 
 import "./LoginPage.css";
 
 export default function LoginPage() {
     const navigate = useNavigate();
 
-    useEffect(() => {
-        document.body.classList.add("auth-page");
-        return () => {
-            document.body.classList.remove("auth-page");
-        };
-    }, []);
-
     const [accountType, setAccountType] = useState("user");
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -26,11 +19,44 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    const [maintenance, setMaintenance] = useState({ active: false, message: "" });
+    const [registrationAllowed, setRegistrationAllowed] = useState(true);
+
+    useEffect(() => {
+        document.body.classList.add("auth-page");
+        let mounted = true;
+
+        api.get("/app-config/public")
+            .then((res) => {
+                if (!mounted) return;
+                const s = res?.data?.settings || {};
+                if (s.maintenanceMode) {
+                    setMaintenance({
+                        active: true,
+                        message: s.maintenanceMessage || "Platform is currently undergoing scheduled maintenance. User logins are temporarily suspended.",
+                    });
+                }
+                if (s.allowUserRegistration === false) {
+                    setRegistrationAllowed(false);
+                }
+            })
+            .catch(() => {});
+
+        return () => {
+            document.body.classList.remove("auth-page");
+            mounted = false;
+        };
+    }, []);
 
     async function submit(e) {
         e.preventDefault();
 
         if (loading) return;
+
+        if (accountType === "user" && maintenance.active) {
+            setError(maintenance.message || "Platform is undergoing maintenance. User logins are temporarily restricted.");
+            return;
+        }
 
         setLoading(true);
         setError("");
@@ -202,6 +228,31 @@ export default function LoginPage() {
 
                     </div>
 
+                    {/* MAINTENANCE ALERTS */}
+                    {accountType === "user" && maintenance.active && (
+                        <div className="auth-alert-banner alert-warning" style={{ marginBottom: "16px" }}>
+                            <FiAlertTriangle size={20} />
+                            <div>
+                                <strong>System Maintenance Active</strong>
+                                <p style={{ margin: "4px 0 0 0", fontSize: "12px", opacity: 0.9 }}>
+                                    {maintenance.message || "Platform is currently undergoing maintenance. Regular user logins are temporarily suspended."}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {accountType === "admin" && maintenance.active && (
+                        <div className="auth-alert-banner" style={{ marginBottom: "16px", background: "rgba(59, 130, 246, 0.1)", border: "1px solid rgba(59, 130, 246, 0.25)", color: "#93c5fd" }}>
+                            <FiShield size={20} />
+                            <div>
+                                <strong>Admin Maintenance Bypass</strong>
+                                <p style={{ margin: "4px 0 0 0", fontSize: "12px", opacity: 0.9 }}>
+                                    Maintenance mode is active for regular users. Administrators retain full platform access.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
 
                     {/* ERROR */}
 
@@ -323,10 +374,12 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         className="login-btn"
-                        disabled={loading}
+                        disabled={loading || (accountType === "user" && maintenance.active)}
                     >
                         {loading
                             ? "Signing in..."
+                            : accountType === "user" && maintenance.active
+                            ? "Log In (Maintenance Active)"
                             : "Log In"}
                     </button>
 
@@ -334,13 +387,16 @@ export default function LoginPage() {
                     {/* SIGN UP */}
 
                     <p className="signup-text">
-
                         Don't have an account?{" "}
-
-                        <Link to="/signup">
-                            Sign Up
-                        </Link>
-
+                        {!registrationAllowed ? (
+                            <span style={{ color: "#f59e0b", fontWeight: 600 }}>
+                                Registrations Paused
+                            </span>
+                        ) : (
+                            <Link to="/signup">
+                                Sign Up
+                            </Link>
+                        )}
                     </p>
 
 

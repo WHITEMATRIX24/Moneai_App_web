@@ -8,8 +8,10 @@ import {
 } from "lucide-react";
 
 import { getFinanceSummary } from "../../services/financeSummary.service.js";
+import { useCurrency } from "../../utils/currency.js";
 
 export default function FinanceSummaryCards({ refreshKey }) {
+  const { formatCurrency } = useCurrency();
   const [summary, setSummary] = useState({
     netWorth: 0,
     income: 0,
@@ -40,21 +42,21 @@ export default function FinanceSummaryCards({ refreshKey }) {
   const cards = [
     {
       title: "Net Worth",
-      value: `₹${Number(summary?.netWorth || 0).toLocaleString()}`,
+      value: formatCurrency(summary?.netWorth || 0),
       change: "",
       icon: Wallet,
       color: "#2563eb",
     },
     {
       title: "Income",
-      value: `₹${Number(summary?.income || 0).toLocaleString()}`,
+      value: formatCurrency(summary?.income || 0),
       change: "",
       icon: TrendingUp,
       color: "#16a34a",
     },
     {
       title: "Expense",
-      value: `₹${Number(summary?.expense || 0).toLocaleString()}`,
+      value: formatCurrency(summary?.expense || 0),
       change: "",
       icon: TrendingDown,
       color: "#dc2626",

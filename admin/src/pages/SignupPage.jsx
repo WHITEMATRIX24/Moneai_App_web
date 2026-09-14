@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import "./LoginPage.css";
 import "./SignupPage.css";
 
 import { toast } from "react-toastify";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiAlertTriangle } from "react-icons/fi";
 
 import { registerUser } from "../services/auth.service";
+import api from "../services/api.js";
 
 export default function SignupPage() {
     const navigate = useNavigate();
@@ -22,6 +23,32 @@ export default function SignupPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const [registrationAllowed, setRegistrationAllowed] = useState(true);
+    const [maintenance, setMaintenance] = useState({ active: false, message: "" });
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        let mounted = true;
+        api.get("/app-config/public")
+            .then((res) => {
+                if (!mounted) return;
+                const s = res?.data?.settings || {};
+                if (s.allowUserRegistration === false) {
+                    setRegistrationAllowed(false);
+                }
+                if (s.maintenanceMode) {
+                    setMaintenance({
+                        active: true,
+                        message: s.maintenanceMessage || "Platform is currently undergoing maintenance. Please try again later.",
+                    });
+                }
+            })
+            .catch(() => {});
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
     async function handleSignup(e) {
         e.preventDefault();
 
@@ -34,6 +61,15 @@ export default function SignupPage() {
             toast.error("Password must be at least 8 characters.");
             return;
         }
+
+        if (loading) return;
+
+        if (!registrationAllowed) {
+            toast.error("User registration is currently disabled by administrator.");
+            return;
+        }
+
+        setLoading(true);
 
         try {
             await registerUser({
@@ -52,6 +88,8 @@ export default function SignupPage() {
                 "Unable to create account.";
 
             toast.error(message);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -99,6 +137,26 @@ export default function SignupPage() {
                         <p className="subtitle">
                             Create your mone.ai account.
                         </p>
+
+                        {!registrationAllowed && (
+                            <div className="auth-alert-banner alert-warning">
+                                <FiAlertTriangle size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
+                                <div>
+                                    <strong>Registration Closed</strong>
+                                    <p>New user registrations are currently disabled by the administrator.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {maintenance.active && (
+                            <div className="auth-alert-banner alert-danger">
+                                <FiAlertTriangle size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
+                                <div>
+                                    <strong>Maintenance Mode</strong>
+                                    <p>{maintenance.message}</p>
+                                </div>
+                            </div>
+                        )}
 
 
                         {/* Full Name */}
@@ -268,8 +326,13 @@ export default function SignupPage() {
                         <button
                             type="submit"
                             className="login-btn"
+                            disabled={!registrationAllowed || loading}
                         >
-                            Create Account
+                            {loading
+                                ? "Creating Account..."
+                                : !registrationAllowed
+                                ? "Registration Disabled"
+                                : "Create Account"}
                         </button>
 
 

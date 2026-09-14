@@ -20,6 +20,9 @@ export function getTargetUserId(req) {
   if (req.query?.userId) {
     return req.query.userId;
   }
+  if (req.auth?.type === "admin") {
+    return null;
+  }
   return req.auth?.user?._id || null;
 }
 
@@ -32,14 +35,14 @@ async function resolveUserId(req) {
     return req.body.userId;
   }
 
-  if (req.auth?.user?._id) {
-    return req.auth.user._id;
-  }
-
   try {
     const firstUser = await User.findOne().select("_id");
     if (firstUser) return firstUser._id;
   } catch {}
+
+  if (req.auth?.user?._id) {
+    return req.auth.user._id;
+  }
 
   return req.body?.userId || "000000000000000000000001";
 }

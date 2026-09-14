@@ -19,6 +19,8 @@ export async function createNotification(req, res) {
       body,
       audience = "ALL",
       userId,
+      sendImmediately = false,
+      status: requestedStatus,
     } = req.body;
 
     if (!title || !body) {
@@ -27,13 +29,30 @@ export async function createNotification(req, res) {
       });
     }
 
+    const isSending = sendImmediately === true || requestedStatus === "SENT";
+
     const notification = await Notification.create({
       title: title.trim(),
       body: body.trim(),
       audience,
       userId: audience === "USER" ? userId : undefined,
-      status: "DRAFT",
+      status: isSending ? "SENT" : "DRAFT",
+      sentAt: isSending ? new Date() : undefined,
     });
+
+    if (isSending) {
+      try {
+        const users = await resolveAudience(audience, userId);
+        notification.deliveryResults = users.map((u) => ({
+          userId: u._id,
+          status: "DELIVERED",
+          recordedAt: new Date(),
+        }));
+        await notification.save();
+      } catch (e) {
+        console.warn("Could not populate deliveryResults on create:", e);
+      }
+    }
 
     return res.status(201).json(notification);
   } catch (error) {
@@ -182,6 +201,17 @@ export async function sendNotificationNow(req, res) {
     notification.status = "SENT";
     notification.sentAt = new Date();
 
+    try {
+      const users = await resolveAudience(notification.audience, notification.userId);
+      notification.deliveryResults = users.map((u) => ({
+        userId: u._id,
+        status: "DELIVERED",
+        recordedAt: new Date(),
+      }));
+    } catch (e) {
+      console.warn("Could not populate deliveryResults on send:", e);
+    }
+
     await notification.save();
 
     return res.status(200).json(notification);
@@ -231,7 +261,7 @@ export async function cancelScheduledNotification(req, res) {
 
 export async function resolveAudience(audience, userId) {
   try {
-    if (audience === "ALL") {
+    if (audience === "ALL" || audience === "ALL_USERS") {
       return await User.find({
         status: "ACTIVE",
       }).select("_id");
@@ -240,14 +270,14 @@ export async function resolveAudience(audience, userId) {
     if (audience === "FREE") {
       return await User.find({
         status: "ACTIVE",
-        subscriptionPlan: "FREE",
+        subscriptionPlan: { $regex: /^free$/i },
       }).select("_id");
     }
 
     if (audience === "PREMIUM") {
       return await User.find({
         status: "ACTIVE",
-        subscriptionPlan: "PREMIUM",
+        subscriptionPlan: { $regex: /^(premium|pro|enterprise)$/i },
       }).select("_id");
     }
 
@@ -268,7 +298,7 @@ export async function resolveAudience(audience, userId) {
       return [user];
     }
 
-    throw new Error("Invalid audience");
+    return await User.find({ status: "ACTIVE" }).select("_id");
   } catch (error) {
     console.error("Resolve audience error:", error);
     throw error;

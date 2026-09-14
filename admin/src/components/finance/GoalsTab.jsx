@@ -57,8 +57,13 @@ export default function GoalsTab({ onRefresh }) {
         onRefresh();
       }
     } catch (err) {
-      console.error(err);
-      alert("Unable to save goal.");
+      console.error("Save goal error:", err);
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Unable to save goal.";
+      alert(msg);
+      throw err;
     }
   }
 
@@ -79,7 +84,8 @@ export default function GoalsTab({ onRefresh }) {
         onRefresh();
       }
     } catch (err) {
-      console.error(err);
+      console.error("Archive goal error:", err);
+      alert(err.response?.data?.message || err.message || "Failed to archive goal.");
     }
   }
 

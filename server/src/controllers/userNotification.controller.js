@@ -11,8 +11,11 @@ import Notification from "../models/Notification.js";
 export async function listUserNotifications(req, res) {
   try {
     const userId = req.auth.user._id;
-    const userPlan = req.auth.user.subscriptionPlan || "FREE";
+    const userPlan = (req.auth.user.subscriptionPlan || "FREE").toUpperCase();
     const allowedAudiences = ["ALL", "ALL_USERS", userPlan];
+    if (userPlan === "ENTERPRISE" || userPlan === "PRO") {
+      allowedAudiences.push("PREMIUM");
+    }
 
     const notifications = await Notification.find({
       status: "SENT",
@@ -22,7 +25,7 @@ export async function listUserNotifications(req, res) {
       ],
     })
       .sort({ createdAt: -1 })
-      .limit(50)
+      .limit(100)
       .lean();
 
     // Attach computed `isRead` without mutating stored docs
@@ -92,24 +95,35 @@ export async function markNotificationRead(req, res) {
       return res.status(404).json({ message: "Notification not found" });
     }
 
+    const shouldMarkRead = req.body?.read !== undefined ? Boolean(req.body.read) : true;
+
     if (notification.userId) {
-      // Personal — use the flat read flag
-      notification.read = true;
-      notification.readAt = new Date();
+      notification.read = shouldMarkRead;
+      notification.readAt = shouldMarkRead ? new Date() : null;
     } else {
-      // Broadcast — add userId to readBy if not already there
       notification.readBy = notification.readBy || [];
-      const alreadyRead = notification.readBy.some(
-        (id) => String(id) === String(userId)
-      );
-      if (!alreadyRead) {
-        notification.readBy.push(userId);
+      if (shouldMarkRead) {
+        const alreadyRead = notification.readBy.some(
+          (id) => String(id) === String(userId)
+        );
+        if (!alreadyRead) {
+          notification.readBy.push(userId);
+        }
+      } else {
+        notification.readBy = notification.readBy.filter(
+          (id) => String(id) !== String(userId)
+        );
       }
     }
 
     await notification.save();
 
-    return res.json({ notification });
+    return res.json({
+      notification: {
+        ...notification.toObject(),
+        isRead: shouldMarkRead,
+      },
+    });
   } catch (error) {
     console.error("markNotificationRead error:", error);
     return res.status(500).json({ message: "Unable to update notification" });

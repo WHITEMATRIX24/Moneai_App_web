@@ -2,12 +2,14 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
+import { useCurrency } from "../../utils/currency.js";
 
 export default function GoalTable({
   goals,
   onEdit,
   onArchive,
 }) {
+  const { formatCurrency } = useCurrency();
   if (goals.length === 0) {
     return (
       <div className="empty-state">
@@ -83,13 +85,11 @@ export default function GoalTable({
               </td>
 
               <td>
-                ₹{" "}
-                {targetAmount.toLocaleString()}
+                {formatCurrency(targetAmount)}
               </td>
 
               <td>
-                ₹{" "}
-                {savedAmount.toLocaleString()}
+                {formatCurrency(savedAmount)}
               </td>
 
               <td
@@ -101,8 +101,7 @@ export default function GoalTable({
                   fontWeight: 700,
                 }}
               >
-                ₹{" "}
-                {remaining.toLocaleString()}
+                {formatCurrency(remaining)}
               </td>
 
               <td

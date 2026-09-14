@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 
 import { getStoredUser, logout } from "../services/auth.service.js";
+import MaintenanceScreen from "../components/MaintenanceScreen.jsx";
+import api from "../services/api.js";
 
 function LiveClock() {
   const [now, setNow] = useState(new Date());
@@ -215,6 +217,42 @@ export default function UserLayout() {
   const navigate = useNavigate();
   const user = getStoredUser();
 
+  const [maintenance, setMaintenance] = useState({
+    active: false,
+    message: "",
+  });
+
+  useEffect(() => {
+    let mounted = true;
+    api.get("/app-config/public")
+      .then((res) => {
+        if (mounted && res?.data?.settings?.maintenanceMode) {
+          setMaintenance({
+            active: true,
+            message: res.data.settings.maintenanceMessage,
+          });
+        }
+      })
+      .catch(() => {});
+
+    function handleMaintenanceEvent(e) {
+      if (mounted) {
+        setMaintenance({
+          active: true,
+          message:
+            e?.detail?.message ||
+            "MONE AI is currently undergoing maintenance. Please try again later.",
+        });
+      }
+    }
+
+    window.addEventListener("mone_maintenance_mode", handleMaintenanceEvent);
+    return () => {
+      mounted = false;
+      window.removeEventListener("mone_maintenance_mode", handleMaintenanceEvent);
+    };
+  }, []);
+
   async function handleLogout() {
     try {
       await logout();
@@ -223,6 +261,21 @@ export default function UserLayout() {
     } finally {
       navigate("/login", { replace: true });
     }
+  }
+
+  if (maintenance.active) {
+    return (
+      <MaintenanceScreen
+        message={maintenance.message}
+        onRetry={() => {
+          api.get("/app-config/public").then((res) => {
+            if (!res?.data?.settings?.maintenanceMode) {
+              setMaintenance({ active: false, message: "" });
+            }
+          });
+        }}
+      />
+    );
   }
 
   return (

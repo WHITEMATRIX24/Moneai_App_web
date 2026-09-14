@@ -26,6 +26,7 @@ import { adminService } from "../services/admin.service.js";
 import PageHeader from "../components/PageHeader.jsx";
 import CustomSelect from "../components/CustomSelect.jsx";
 import ColorWheelPicker from "../components/theme/ColorWheelPicker.jsx";
+import { setActiveCurrency, SUPPORTED_CURRENCIES } from "../utils/currency.js";
 import "./PlatformSettingsPage.css";
 
 
@@ -158,6 +159,10 @@ export default function PlatformSettingsPage() {
 
       setSettings(finalSettings);
       setSavedSettings(finalSettings);
+
+      if (finalSettings.defaultCurrency) {
+        setActiveCurrency(finalSettings.defaultCurrency);
+      }
 
       applyTheme(finalSettings.themeColor);
       applyAppearanceMode(finalSettings.themeMode);
@@ -350,6 +355,10 @@ function applyFontSize(size) {
       applyTheme(settings.themeColor);
       applyAppearanceMode(settings.themeMode);
       applyFontSize(settings.fontSize);
+
+      if (settings.defaultCurrency) {
+        setActiveCurrency(settings.defaultCurrency);
+      }
 
 
       try {
@@ -622,18 +631,14 @@ function applyFontSize(size) {
                   <CustomSelect
                     fullWidth
                     value={settings.defaultCurrency}
-                    onChange={(val) =>
-                      updateSetting(
-                        "defaultCurrency",
-                        val
-                      )
-                    }
-                    options={[
-                      { value: "INR", label: "INR - Indian Rupee" },
-                      { value: "USD", label: "USD - US Dollar" },
-                      { value: "EUR", label: "EUR - Euro" },
-                      { value: "GBP", label: "GBP - British Pound" },
-                    ]}
+                    onChange={(val) => {
+                      updateSetting("defaultCurrency", val);
+                      setActiveCurrency(val);
+                    }}
+                    options={SUPPORTED_CURRENCIES.map((c) => ({
+                      value: c.code,
+                      label: `${c.code} - ${c.name} (${c.symbol})`,
+                    }))}
                   />
                 </SettingField>
 
@@ -753,27 +758,13 @@ function applyFontSize(size) {
                 />
 
                 {/* LIVE PREVIEW */}
-                <div
-                  className="ps-live-preview"
-                  style={{
-                    margin: 0,
-                    borderRadius: "18px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    padding: "24px",
-                    background: "var(--bg-card, #ffffff)",
-                    border: "1px solid var(--line, #e2e8f0)",
-                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.04)",
-                    boxSizing: "border-box",
-                  }}
-                >
+                <div className="ps-live-preview">
                   <div className="ps-preview-header">
                     <div>
-                      <strong style={{ fontSize: "15px", color: "var(--text, #1e293b)", display: "block" }}>
+                      <strong style={{ fontSize: "15px", display: "block" }}>
                         Live System Preview
                       </strong>
-                      <span style={{ fontSize: "12px", color: "var(--muted, #64748b)" }}>
+                      <span className="cwp-preview-sub" style={{ fontSize: "12px" }}>
                         Updates all dashboard components immediately
                       </span>
                     </div>
@@ -826,24 +817,14 @@ function applyFontSize(size) {
                     </span>
                   </div>
 
-                  <div
-                    style={{
-                      padding: "14px 16px",
-                      borderRadius: "12px",
-                      background: "var(--primary-bg-soft, rgba(var(--primary-color-rgb, 255, 101, 0), 0.06))",
-                      border: "1px solid var(--primary-border, rgba(var(--primary-color-rgb, 255, 101, 0), 0.2))",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
+                  <div className="cwp-preview-kpi">
                     <div>
-                      <div style={{ fontSize: "11px", color: "var(--muted, #64748b)", fontWeight: 600 }}>Active Accent Hex</div>
+                      <div className="cwp-preview-sub" style={{ fontSize: "11px", fontWeight: 600 }}>Active Accent Hex</div>
                       <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--primary-color, #ff6500)" }}>
                         {settings.themeColor.toUpperCase()}
                       </div>
                     </div>
-                    <div style={{ textAlign: "right", fontSize: "12px", color: "var(--muted, #64748b)" }}>
+                    <div className="cwp-preview-sub" style={{ textAlign: "right", fontSize: "12px" }}>
                       Applied to all platform modules
                     </div>
                   </div>

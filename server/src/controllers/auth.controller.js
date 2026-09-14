@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 
 import Admin from "../models/Admin.js";
 import User from "../models/User.js";
+import AppConfig from "../models/AppConfig.js";
 import RefreshSession from "../models/RefreshSession.js";
 import { parseUserAgent } from "../utils/userAgent.js";
 
@@ -128,6 +129,16 @@ async function createSession({ id, type, role = null, req = null }) {
 
 export async function registerUser(req, res) {
   try {
+    // Check if user registration is allowed in platform settings
+    const configDoc = await AppConfig.findOne({ key: "platform_settings" });
+    const platformSettings = configDoc?.value || {};
+    if (platformSettings.allowUserRegistration === false) {
+      return res.status(403).json({
+        message: "User registration is currently disabled by administrator",
+        code: "REGISTRATION_DISABLED",
+      });
+    }
+
     const { name, email, password, phone, timezone } = req.body;
 
     if (!name || !email || !password) {
@@ -213,6 +224,19 @@ export async function registerUser(req, res) {
 
 export async function loginUser(req, res) {
   try {
+    // Check if maintenance mode is active for regular users
+    const configDoc = await AppConfig.findOne({ key: "platform_settings" });
+    const platformSettings = configDoc?.value || {};
+    if (platformSettings.maintenanceMode) {
+      return res.status(503).json({
+        message:
+          platformSettings.maintenanceMessage ||
+          "MONE AI is currently undergoing maintenance. Please try again later.",
+        code: "MAINTENANCE_MODE",
+        maintenanceMode: true,
+      });
+    }
+
     const { email, password } = req.body;
 
     if (!email || !password) {

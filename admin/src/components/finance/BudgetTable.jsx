@@ -2,12 +2,14 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
+import { useCurrency } from "../../utils/currency.js";
 
 export default function BudgetTable({
   budgets,
   onEdit,
   onArchive,
 }) {
+  const { formatCurrency } = useCurrency();
   if (budgets.length === 0) {
     return (
       <div className="accounts-table-card">
@@ -95,17 +97,11 @@ export default function BudgetTable({
                 </td>
 
                 <td>
-                  ₹{" "}
-                  {Number(
-                    budget.budgetAmount
-                  ).toLocaleString()}
+                  {formatCurrency(budget.budgetAmount)}
                 </td>
 
                 <td>
-                  ₹{" "}
-                  {Number(
-                    budget.spentAmount
-                  ).toLocaleString()}
+                  {formatCurrency(budget.spentAmount)}
                 </td>
 
                 <td
@@ -117,10 +113,7 @@ export default function BudgetTable({
                     fontWeight: 700,
                   }}
                 >
-                  ₹{" "}
-                  {Number(
-                    remaining
-                  ).toLocaleString()}
+                  {formatCurrency(remaining)}
                 </td>
 
                 <td style={{ width: 180 }}>

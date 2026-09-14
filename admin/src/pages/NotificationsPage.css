@@ -830,6 +830,24 @@ html.dark-mode .notifications-page {
   background: var(--nt-red);
 }
 
+.status-unread {
+  color: var(--nt-orange);
+  background: var(--nt-orange-soft);
+}
+
+.status-unread i {
+  background: var(--nt-orange);
+}
+
+.status-read {
+  color: #72675e;
+  background: #f1ece6;
+}
+
+.status-read i {
+  background: #938579;
+}
+
 /* =========================================================
    ACTIONS
 ========================================================= */
@@ -1806,6 +1824,25 @@ html.dark-mode .notifications-table td {
 
 html.dark-mode .notifications-table tbody tr:hover {
   background: #1c273e !important;
+}
+
+html.dark-mode .status-unread {
+  color: var(--primary-color, #ff6500) !important;
+  background: rgba(var(--primary-color-rgb, 255, 101, 0), 0.16) !important;
+}
+
+html.dark-mode .status-unread i {
+  background: var(--primary-color, #ff6500) !important;
+  box-shadow: 0 0 6px var(--primary-color, #ff6500) !important;
+}
+
+html.dark-mode .status-read {
+  color: #94a3b8 !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark-mode .status-read i {
+  background: #64748b !important;
 }
 
 html.dark-mode .table-action-btn {

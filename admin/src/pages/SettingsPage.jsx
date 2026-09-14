@@ -27,6 +27,8 @@ import PageHeader from "../components/PageHeader.jsx";
 import CustomSelect from "../components/CustomSelect.jsx";
 import ColorWheelPicker from "../components/theme/ColorWheelPicker.jsx";
 import aiPersonalizationService from "../services/aiPersonalization.service.js";
+import api from "../services/api.js";
+import { getActiveCurrency, setActiveCurrency, SUPPORTED_CURRENCIES } from "../utils/currency.js";
 import "./SettingsPage.css";
 
 const COLOR_PRESETS = [
@@ -47,7 +49,7 @@ export default function SettingsPage() {
   const [sessionTimeout, setSessionTimeout] = useState("30");
 
   const [financeEnabled, setFinanceEnabled] = useState(true);
-  const [currency, setCurrency] = useState("INR");
+  const [currency, setCurrency] = useState(() => getActiveCurrency());
   const [transactionLimit, setTransactionLimit] = useState("100000");
 
   const [healthEnabled, setHealthEnabled] = useState(true);
@@ -71,6 +73,35 @@ export default function SettingsPage() {
 
   const [savingSection, setSavingSection] = useState("");
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+    api.get("/app-config/public")
+      .then((res) => {
+        if (!mounted) return;
+        const s = res?.data?.settings || {};
+        if (s.platformName) setAppName(s.platformName);
+        if (typeof s.maintenanceMode === "boolean") setMaintenanceMode(s.maintenanceMode);
+        if (typeof s.allowUserRegistration === "boolean") setRegistrationEnabled(s.allowUserRegistration);
+        if (s.defaultCurrency) {
+          setCurrency(s.defaultCurrency);
+          setActiveCurrency(s.defaultCurrency);
+        }
+      })
+      .catch(() => {});
+
+    const handleCurrencyChange = (e) => {
+      if (e.detail?.currency) {
+        setCurrency(e.detail.currency);
+      }
+    };
+    window.addEventListener("mone_currency_changed", handleCurrencyChange);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener("mone_currency_changed", handleCurrencyChange);
+    };
+  }, []);
 
   function handleThemeModeChange(mode) {
     setThemeMode(mode);
@@ -104,14 +135,52 @@ export default function SettingsPage() {
     setMessage(`Theme accent colour updated.`);
   }
 
-  function showSavedMessage(section) {
+  async function showSavedMessage(section) {
     setSavingSection(section);
     setMessage("");
 
-    window.setTimeout(() => {
-      setSavingSection("");
+    try {
+      if (section === "General") {
+        localStorage.setItem("mone_app_name", appName);
+        localStorage.setItem("mone_maintenance_mode", String(maintenanceMode));
+        localStorage.setItem("mone_registration_enabled", String(registrationEnabled));
+        localStorage.setItem("mone_session_timeout", sessionTimeout);
+        try {
+          await api.patch("/admin/app-config", {
+            settings: {
+              platformName: appName,
+              maintenanceMode,
+              allowUserRegistration: registrationEnabled,
+            },
+          });
+        } catch (_) {}
+      } else if (section === "Finance") {
+        setActiveCurrency(currency);
+        localStorage.setItem("mone_currency", currency);
+        localStorage.setItem("mone_transaction_limit", transactionLimit);
+        localStorage.setItem("mone_finance_enabled", String(financeEnabled));
+        try {
+          await api.patch("/admin/app-config", {
+            settings: {
+              defaultCurrency: currency,
+            },
+          });
+        } catch (_) {}
+      } else if (section === "Health") {
+        localStorage.setItem("mone_health_enabled", String(healthEnabled));
+        localStorage.setItem("mone_health_reminders", String(healthReminders));
+        localStorage.setItem("mone_health_notifications", String(healthNotifications));
+      } else if (section === "AI") {
+        localStorage.setItem("mone_ai_enabled", String(aiEnabled));
+        localStorage.setItem("mone_ai_model", aiModel);
+        localStorage.setItem("mone_ai_limit", aiRequestLimit);
+      }
       setMessage(`${section} settings saved successfully.`);
-    }, 350);
+    } catch (_) {
+      setMessage(`${section} settings saved locally.`);
+    } finally {
+      setSavingSection("");
+    }
   }
 
   const enabledServices = useMemo(() => {
@@ -311,28 +380,14 @@ export default function SettingsPage() {
                 onChange={handleThemeColorChange}
                 size={230}
               />
-              <div
-                className="settings-theme-preview-card"
-                style={{
-                  background: "var(--bg-card, #ffffff)",
-                  border: "1px solid var(--line, #e2e8f0)",
-                  borderRadius: "18px",
-                  padding: "24px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  gap: "20px",
-                  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.04)",
-                  boxSizing: "border-box",
-                }}
-              >
+              <div className="settings-theme-preview-card">
                 {/* Header */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <strong style={{ fontSize: "15px", color: "var(--text, #1e293b)", display: "block" }}>
+                    <strong style={{ fontSize: "15px", display: "block" }}>
                       Live Component Preview
                     </strong>
-                    <span style={{ fontSize: "12px", color: "var(--muted, #64748b)" }}>
+                    <span className="cwp-preview-sub" style={{ fontSize: "12px" }}>
                       Every card, button, and indicator syncs live
                     </span>
                   </div>
@@ -354,7 +409,7 @@ export default function SettingsPage() {
 
                 {/* Buttons Row */}
                 <div>
-                  <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "var(--muted, #94a3b8)", letterSpacing: "0.05em", display: "block", marginBottom: "8px" }}>
+                  <span className="cwp-preview-sub" style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: "8px" }}>
                     Buttons & Actions
                   </span>
                   <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
@@ -380,7 +435,7 @@ export default function SettingsPage() {
                       style={{
                         padding: "9px 18px",
                         borderRadius: "10px",
-                        border: "1px solid var(--primary-border, rgba(var(--primary-color-rgb, 255, 101, 0), 0.3))",
+                        border: "1.5px solid var(--primary-color, #ff6500)",
                         background: "transparent",
                         color: "var(--primary-color, #ff6500)",
                         fontWeight: 600,
@@ -396,7 +451,7 @@ export default function SettingsPage() {
                         padding: "9px 14px",
                         borderRadius: "10px",
                         border: "none",
-                        background: "var(--primary-bg-soft, rgba(var(--primary-color-rgb, 255, 101, 0), 0.1))",
+                        background: "rgba(var(--primary-color-rgb, 255, 101, 0), 0.12)",
                         color: "var(--primary-color, #ff6500)",
                         fontWeight: 700,
                         fontSize: "13px",
@@ -409,19 +464,9 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Metrics / KPI card */}
-                <div
-                  style={{
-                    padding: "16px 18px",
-                    borderRadius: "14px",
-                    background: "var(--primary-bg-soft, rgba(var(--primary-color-rgb, 255, 101, 0), 0.05))",
-                    border: "1px solid var(--primary-border, rgba(var(--primary-color-rgb, 255, 101, 0), 0.2))",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
+                <div className="cwp-preview-kpi">
                   <div>
-                    <div style={{ fontSize: "12px", color: "var(--muted, #64748b)", fontWeight: 600 }}>Active Theme Metric</div>
+                    <div className="cwp-preview-sub" style={{ fontSize: "12px", fontWeight: 600 }}>Active Theme Metric</div>
                     <div style={{ fontSize: "24px", fontWeight: 800, color: "var(--primary-color, #ff6500)", marginTop: "2px" }}>
                       {themeColor.toUpperCase()}
                     </div>
@@ -450,17 +495,17 @@ export default function SettingsPage() {
                       />{" "}
                       Live Theme
                     </span>
-                    <div style={{ fontSize: "11px", color: "var(--muted, #94a3b8)", marginTop: "4px" }}>System wide</div>
+                    <div className="cwp-preview-sub" style={{ fontSize: "11px", marginTop: "4px" }}>System wide</div>
                   </div>
                 </div>
 
                 {/* Progress bar preview */}
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: 600, color: "var(--text, #1e293b)", marginBottom: "6px" }}>
-                    <span>Accent Progress Fill</span>
-                    <span style={{ color: "var(--primary-color, #ff6500)" }}>78%</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>
+                    <strong>Accent Progress Fill</strong>
+                    <span style={{ color: "var(--primary-color, #ff6500)", fontWeight: 700 }}>78%</span>
                   </div>
-                  <div style={{ width: "100%", height: "8px", borderRadius: "4px", background: "var(--line, #e2e8f0)", overflow: "hidden" }}>
+                  <div className="cwp-preview-progress-track">
                     <div
                       style={{
                         width: "78%",
@@ -664,13 +709,14 @@ export default function SettingsPage() {
               <CustomSelect
                 fullWidth
                 value={currency}
-                onChange={setCurrency}
-                options={[
-                  { value: "INR", label: "INR - Indian Rupee" },
-                  { value: "USD", label: "USD - US Dollar" },
-                  { value: "EUR", label: "EUR - Euro" },
-                  { value: "GBP", label: "GBP - British Pound" },
-                ]}
+                onChange={(val) => {
+                  setCurrency(val);
+                  setActiveCurrency(val);
+                }}
+                options={SUPPORTED_CURRENCIES.map((c) => ({
+                  value: c.code,
+                  label: `${c.code} - ${c.name} (${c.symbol})`,
+                }))}
               />
             </div>
 

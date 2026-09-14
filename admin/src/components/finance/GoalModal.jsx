@@ -20,6 +20,7 @@ export default function GoalModal({
   initialData,
 }) {
   const [form, setForm] = useState(getInitialForm);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -70,8 +71,9 @@ export default function GoalModal({
     }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    if (submitting) return;
 
     const goalName = form.goalName.trim();
 
@@ -132,153 +134,137 @@ export default function GoalModal({
       status: form.status,
     };
 
-    console.log(
-      "GOAL PAYLOAD:",
-      payload
-    );
-
-    onSave(payload);
+    try {
+      setSubmitting(true);
+      await onSave(payload);
+    } catch (err) {
+      // Handled by onSave caller, keep modal open
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
-    <div className="account-modal">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="account-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="account-modal-header">
+          <div>
+            <h2>
+              {initialData
+                ? "Edit Goal"
+                : "Add Goal"}
+            </h2>
 
-      <div className="account-modal-header">
-
-        <div>
-          <h2>
-            {initialData
-              ? "Edit Goal"
-              : "Add Goal"}
-          </h2>
-
-          <p>
-            Enter your financial goal details.
-          </p>
-        </div>
-
-        <button
-          className="close-btn"
-          onClick={onClose}
-          type="button"
-        >
-          ✕
-        </button>
-
-      </div>
-
-      <form onSubmit={handleSubmit}>
-
-        <div className="form-grid">
-
-          <div className="form-group">
-
-            <label>Goal Name</label>
-
-            <input
-              name="goalName"
-              value={form.goalName}
-              onChange={handleChange}
-              placeholder="Buy MacBook"
-              maxLength={100}
-            />
-
+            <p>
+              Enter your financial goal details.
+            </p>
           </div>
-
-          <div className="form-group">
-
-            <label>Target Amount</label>
-
-            <input
-              type="number"
-              name="targetAmount"
-              min="1"
-              step="0.01"
-              value={form.targetAmount}
-              onChange={handleChange}
-              placeholder="100000"
-            />
-
-          </div>
-
-          <div className="form-group">
-
-            <label>Saved Amount</label>
-
-            <input
-              type="number"
-              name="savedAmount"
-              min="0"
-              step="0.01"
-              value={form.savedAmount}
-              onChange={handleChange}
-              placeholder="25000"
-            />
-
-          </div>
-
-          <div className="form-group">
-
-            <label>Target Date</label>
-
-            <input
-              type="date"
-              name="targetDate"
-              value={form.targetDate}
-              onChange={handleChange}
-            />
-
-          </div>
-
-          <div className="form-group">
-
-            <label>Status</label>
-
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-            >
-              <option value="In Progress">
-                In Progress
-              </option>
-
-              <option value="Completed">
-                Completed
-              </option>
-
-              <option value="Cancelled">
-                Cancelled
-              </option>
-            </select>
-
-          </div>
-
-        </div>
-
-        <div className="modal-footer">
 
           <button
-            type="button"
-            className="btn-secondary"
+            className="close-btn"
             onClick={onClose}
+            type="button"
           >
-            Cancel
+            ✕
           </button>
-
-          <button
-            type="submit"
-            className="btn-primary"
-          >
-            {initialData
-              ? "Update Goal"
-              : "Save Goal"}
-          </button>
-
         </div>
 
-      </form>
+        <form onSubmit={handleSubmit}>
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Goal Name</label>
+              <input
+                name="goalName"
+                value={form.goalName}
+                onChange={handleChange}
+                placeholder="Buy MacBook"
+                maxLength={100}
+                required
+              />
+            </div>
 
+            <div className="form-group">
+              <label>Target Amount</label>
+              <input
+                type="number"
+                name="targetAmount"
+                min="1"
+                step="0.01"
+                value={form.targetAmount}
+                onChange={handleChange}
+                placeholder="100000"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Saved Amount</label>
+              <input
+                type="number"
+                name="savedAmount"
+                min="0"
+                step="0.01"
+                value={form.savedAmount}
+                onChange={handleChange}
+                placeholder="25000"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Target Date</label>
+              <input
+                type="date"
+                name="targetDate"
+                value={form.targetDate}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Status</label>
+              <select
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+              >
+                <option value="In Progress">
+                  In Progress
+                </option>
+                <option value="Completed">
+                  Completed
+                </option>
+                <option value="Cancelled">
+                  Cancelled
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={onClose}
+              disabled={submitting}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={submitting}
+            >
+              {submitting
+                ? "Saving..."
+                : initialData
+                ? "Update Goal"
+                : "Save Goal"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

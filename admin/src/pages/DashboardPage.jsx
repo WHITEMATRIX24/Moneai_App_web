@@ -27,6 +27,18 @@ import {
   Bell,
   ShieldAlert,
   ExternalLink,
+  SlidersHorizontal,
+  ChevronUp,
+  ChevronDown,
+  GripVertical,
+  EyeOff,
+  Maximize2,
+  Minimize2,
+  Save,
+  RotateCcw,
+  Plus,
+  X,
+  LayoutGrid,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -37,18 +49,55 @@ import { medicineService } from "../services/medicine.service.js";
 import { getStoredUser } from "../services/auth.service.js";
 import api from "../services/api.js";
 import PageHeader from "../components/PageHeader.jsx";
+import { useCurrency, formatCurrency as globalFormatCurrency } from "../utils/currency.js";
 import "./DashboardPage.css";
 
 const STEP_GOAL = 10000;
 
-function formatCurrency(value) {
-  const number = Number(value || 0);
+export const ALL_SYSTEM_WIDGETS = [
+  { key: "overview", id: "default-overview", title: "Financial Overview", colSpan: 1, type: "module" },
+  { key: "health", id: "default-health", title: "Wellness & Daily Progress", colSpan: 1, type: "module" },
+  { key: "finance", id: "default-finance", title: "Recent Transactions", colSpan: 1, type: "module" },
+  { key: "ai", id: "default-ai", title: "Recent AI Activity", colSpan: 1, type: "module" },
+  { key: "todo", id: "default-todo", title: "To-Do & Tasks", colSpan: 1, type: "module" },
+  { key: "medicines", id: "default-medicines", title: "Medication Tracker", colSpan: 1, type: "module" },
+  { key: "notifications", id: "default-notifications", title: "Alerts & Notifications", colSpan: 1, type: "module" },
+];
 
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 2,
-  }).format(number);
+export const DEFAULT_WIDGET_ORDER = [
+  { id: "default-overview", key: "overview", title: "Financial Overview", enabled: true, colSpan: 1 },
+  { id: "default-health", key: "health", title: "Wellness & Daily Progress", enabled: true, colSpan: 1 },
+  { id: "default-finance", key: "finance", title: "Recent Transactions", enabled: true, colSpan: 1 },
+  { id: "default-ai", key: "ai", title: "Recent AI Activity", enabled: true, colSpan: 1 },
+  { id: "default-todo", key: "todo", title: "To-Do & Tasks", enabled: true, colSpan: 1 },
+  { id: "default-medicines", key: "medicines", title: "Medication Tracker", enabled: true, colSpan: 1 },
+];
+
+function getWidgetKey(widget) {
+  if (!widget) return "";
+  if (typeof widget === "string") return widget.toLowerCase();
+  return String(
+    widget.key ||
+    widget.widgetId ||
+    widget.slug ||
+    widget.code ||
+    widget.type ||
+    widget.id ||
+    ""
+  ).toLowerCase();
+}
+
+function getWidgetTitle(widget) {
+  if (!widget) return "Widget";
+  if (typeof widget === "string") {
+    const found = ALL_SYSTEM_WIDGETS.find((w) => w.key === widget);
+    return found?.title || widget;
+  }
+  return widget.title || widget.name || widget.label || widget.key || "Widget";
+}
+
+function formatCurrency(value) {
+  return globalFormatCurrency(value);
 }
 
 function formatNumber(value) {
@@ -137,6 +186,7 @@ function StatCard({ title, value, subtitle, icon: Icon, variant, footer }) {
 }
 
 export default function DashboardPage({ isAdmin = false }) {
+  const { currency } = useCurrency();
   const location = useLocation();
   const isAdminView = isAdmin || location.pathname.startsWith("/admin");
   const user = getStoredUser();
@@ -154,6 +204,12 @@ export default function DashboardPage({ isAdmin = false }) {
   const [adminData, setAdminData] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [widgetLayout, setWidgetLayout] = useState([]);
+  const [activeWidgets, setActiveWidgets] = useState([]);
+  const [isCustomizing, setIsCustomizing] = useState(false);
+  const [savingLayout, setSavingLayout] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -214,6 +270,15 @@ export default function DashboardPage({ isAdmin = false }) {
         setWidgetLayout(list);
         const customOnly = list.filter((w) => w && (w.type === "custom" || w.customType));
         setCustomWidgets(customOnly);
+
+        const activeList = list.filter((w) => w && w.enabled !== false && w.active !== false);
+        if (activeList.length > 0) {
+          setActiveWidgets(activeList);
+        } else {
+          setActiveWidgets(DEFAULT_WIDGET_ORDER);
+        }
+      } else {
+        setActiveWidgets(DEFAULT_WIDGET_ORDER);
       }
 
       if (isAdminView) {
@@ -385,6 +450,135 @@ export default function DashboardPage({ isAdmin = false }) {
     } finally {
       setCompletingId(null);
     }
+  };
+
+  const availableToAdd = useMemo(() => {
+    const activeKeys = new Set(activeWidgets.map((w) => getWidgetKey(w)));
+    const systemAvailable = ALL_SYSTEM_WIDGETS.filter((w) => !activeKeys.has(w.key));
+    const customAvailable = customWidgets.filter((w) => !activeKeys.has(getWidgetKey(w)));
+    return [...systemAvailable, ...customAvailable];
+  }, [activeWidgets, customWidgets]);
+
+  const handleMoveWidget = (index, direction) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= activeWidgets.length) return;
+    setActiveWidgets((prev) => {
+      const copy = [...prev];
+      const temp = copy[index];
+      copy[index] = copy[targetIndex];
+      copy[targetIndex] = temp;
+      return copy;
+    });
+  };
+
+  const handleToggleColSpan = (index) => {
+    setActiveWidgets((prev) => {
+      const copy = [...prev];
+      const target = { ...copy[index] };
+      const currentSpan = target.colSpan || (target.width === 2 ? 2 : 1);
+      const newSpan = currentSpan === 2 ? 1 : 2;
+      target.colSpan = newSpan;
+      target.width = newSpan;
+      copy[index] = target;
+      return copy;
+    });
+  };
+
+  const handleRemoveWidget = (index) => {
+    const removed = activeWidgets[index];
+    setActiveWidgets((prev) => prev.filter((_, i) => i !== index));
+    toast.info(`${removed.title || "Widget"} hidden from dashboard.`);
+  };
+
+  const handleAddWidget = (widgetDef) => {
+    setActiveWidgets((prev) => [
+      ...prev,
+      {
+        ...widgetDef,
+        enabled: true,
+        colSpan: widgetDef.colSpan || 1,
+      },
+    ]);
+    toast.success(`${widgetDef.title} added to dashboard!`);
+  };
+
+  const handleResetLayout = async () => {
+    try {
+      setSavingLayout(true);
+      setActiveWidgets(DEFAULT_WIDGET_ORDER);
+      await api.put("/widgets/layout", { widgets: DEFAULT_WIDGET_ORDER });
+      toast.success("Dashboard reset to default layout.");
+    } catch (err) {
+      console.error("Failed to reset layout:", err);
+      toast.error("Could not reset layout on server.");
+    } finally {
+      setSavingLayout(false);
+    }
+  };
+
+  const handleSaveLayout = async () => {
+    try {
+      setSavingLayout(true);
+      const payload = activeWidgets.map((w, idx) => ({
+        id: w.id || w.widgetId || `widget-${w.key || idx}`,
+        widgetId: w.widgetId || w.id || w.key,
+        key: w.key || w.widgetId,
+        title: w.title || getWidgetTitle(w),
+        type: w.type || (w.customType ? "custom" : "module"),
+        customType: w.customType,
+        config: w.config,
+        colSpan: w.colSpan || (w.width === 2 ? 2 : 1),
+        width: w.width || w.colSpan || 1,
+        height: w.height || 1,
+        enabled: true,
+        order: idx,
+      }));
+
+      await api.put("/widgets/layout", { widgets: payload });
+      toast.success("Dashboard layout saved successfully!");
+      setIsCustomizing(false);
+    } catch (err) {
+      console.error("Failed to save layout:", err);
+      toast.error(err?.response?.data?.message || "Failed to save dashboard layout.");
+    } finally {
+      setSavingLayout(false);
+    }
+  };
+
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(index));
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    setActiveWidgets((prev) => {
+      const copy = [...prev];
+      const [moved] = copy.splice(draggedIndex, 1);
+      copy.splice(targetIndex, 0, moved);
+      return copy;
+    });
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const finance = useMemo(() => {
@@ -858,11 +1052,115 @@ export default function DashboardPage({ isAdmin = false }) {
         </div>
       )}
 
-      <Link to="/admin/notifications" className="view-all-link">
+      <Link to={isAdminView ? "/admin/notifications" : "/notifications"} className="view-all-link">
         View all notifications →
       </Link>
     </article>
   );
+
+  const renderSingleCustomWidget = (widget) => (
+    <article className="dashboard-panel dashboard-custom-panel" key={widget.widgetId || widget.id}>
+      <div className="dashboard-panel__header">
+        <div>
+          <span className="dashboard-section-label">{widget.customType || widget.category || "Custom"}</span>
+          <h2>{widget.title || "Custom Widget"}</h2>
+          <p>{widget.description || "Personalized dashboard widget."}</p>
+        </div>
+        <div className="dashboard-panel-icon">
+          <Sparkles size={20} />
+        </div>
+      </div>
+
+      <div className="dashboard-custom-widget-body" style={{ marginTop: "14px" }}>
+        {widget.config?.statValue && (
+          <div style={{ display: "flex", alignItems: "baseline", gap: "10px", marginBottom: "12px" }}>
+            <strong style={{ fontSize: "28px", fontWeight: 700, color: "var(--dash-text, #261c14)" }}>
+              {widget.config.statValue}
+            </strong>
+            {widget.config.change && (
+              <span style={{ fontSize: "13px", fontWeight: 650, color: "#16a34a" }}>
+                {widget.config.change}
+              </span>
+            )}
+          </div>
+        )}
+
+        {Array.isArray(widget.config?.items) && widget.config.items.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
+            {widget.config.items.map((item, idx) => (
+              <div
+                key={idx}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  background: "var(--dash-bg-subtle, #faf6f0)",
+                  fontSize: "13px",
+                }}
+              >
+                <span>{typeof item === "object" ? (item.title || item.label || item.name) : String(item)}</span>
+                {item.value && <strong>{item.value}</strong>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {widget.config?.progress !== undefined && (
+          <div className="dashboard-progress-section" style={{ marginTop: "10px" }}>
+            <div className="dashboard-progress-heading">
+              <span>{widget.config.progressLabel || "Goal progress"}</span>
+              <strong>{widget.config.progress}%</strong>
+            </div>
+            <div className="dashboard-progress-track">
+              <div
+                className="dashboard-progress-value dashboard-progress-value--finance"
+                style={{ width: `${Math.min(100, Math.max(0, Number(widget.config.progress)))}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Link to="/widgets" className="view-all-link">
+        Manage in Widgets →
+      </Link>
+    </article>
+  );
+
+  const renderWidgetByKey = (widget) => {
+    const key = getWidgetKey(widget);
+
+    if (key.includes("overview")) {
+      return renderFinancialOverview();
+    }
+    if (key.includes("health") || key.includes("wellness") || key.includes("vitals")) {
+      return renderDailyProgress();
+    }
+    if (key.includes("finance") || key.includes("transaction")) {
+      return renderRecentTransactions();
+    }
+    if (key.includes("ai") || key.includes("intelligence") || key.includes("insight")) {
+      return renderRecentAI();
+    }
+    if (key.includes("todo") || key.includes("task") || key.includes("calendar")) {
+      return renderTasks();
+    }
+    if (key.includes("medicin") || key.includes("pill") || key.includes("dose")) {
+      return renderMedicines();
+    }
+    if (key.includes("notif") || key.includes("alert")) {
+      return renderNotifications();
+    }
+    if (key.includes("custom") || widget.type === "custom" || widget.customType) {
+      return renderSingleCustomWidget(widget);
+    }
+    if (customWidgets.length > 0) {
+      return renderCustomWidgets(false);
+    }
+    return null;
+  };
 
   const renderCustomWidgets = (spanAll = false) => (
     <article className="dashboard-panel dashboard-tasks-panel" style={{ gridColumn: spanAll ? "1 / -1" : "auto" }}>
@@ -1102,6 +1400,18 @@ export default function DashboardPage({ isAdmin = false }) {
         </div>
 
         <div className="dashboard-hero__actions">
+          {!isAdminView && (
+            <button
+              type="button"
+              className={`dashboard-customize-btn ${isCustomizing ? "dashboard-customize-btn--active" : ""}`}
+              onClick={() => setIsCustomizing((prev) => !prev)}
+              title="Rearrange and customize dashboard widgets"
+            >
+              <SlidersHorizontal size={17} />
+              <span>{isCustomizing ? "Done Customizing" : "Rearrange Dashboard"}</span>
+            </button>
+          )}
+
           <button
             type="button"
             className="dashboard-refresh-btn"
@@ -1241,21 +1551,201 @@ export default function DashboardPage({ isAdmin = false }) {
         </>
       ) : (
         <>
-          <section className="dashboard-overview-grid">
-            {renderFinancialOverview()}
-            {renderDailyProgress()}
+          {isCustomizing && (
+            <div className="dashboard-customize-toolbar">
+              <div className="dashboard-customize-toolbar__left">
+                <div className="dashboard-customize-badge">
+                  <LayoutGrid size={15} />
+                  <span>Customize & Rearrange</span>
+                </div>
+                <p className="dashboard-customize-hint">
+                  Drag cards or use <strong>↑ / ↓</strong> buttons to move widgets. Toggle card width or hide items.
+                </p>
+              </div>
+
+              <div className="dashboard-customize-toolbar__actions">
+                {availableToAdd.length > 0 && (
+                  <div className="dashboard-add-widget-menu-wrapper">
+                    <button
+                      type="button"
+                      className="dashboard-toolbar-btn dashboard-toolbar-btn--secondary"
+                      onClick={() => setShowAddMenu((prev) => !prev)}
+                    >
+                      <Plus size={15} />
+                      <span>Add Widget ({availableToAdd.length})</span>
+                    </button>
+                    {showAddMenu && (
+                      <div className="dashboard-add-widget-dropdown">
+                        <div className="dashboard-add-widget-dropdown__header">
+                          <span>Add to Dashboard</span>
+                          <button
+                            type="button"
+                            className="dashboard-dropdown-close"
+                            onClick={() => setShowAddMenu(false)}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                        <div className="dashboard-add-widget-dropdown__list">
+                          {availableToAdd.map((w) => (
+                            <button
+                              key={w.key || w.widgetId || w.id}
+                              type="button"
+                              className="dashboard-add-widget-item"
+                              onClick={() => {
+                                handleAddWidget(w);
+                                setShowAddMenu(false);
+                              }}
+                            >
+                              <Plus size={14} />
+                              <span>{w.title || getWidgetTitle(w)}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="dashboard-toolbar-btn dashboard-toolbar-btn--secondary"
+                  onClick={handleResetLayout}
+                  disabled={savingLayout}
+                  title="Reset to default widgets and order"
+                >
+                  <RotateCcw size={15} />
+                  <span>Reset Default</span>
+                </button>
+
+                <Link
+                  to="/widgets"
+                  className="dashboard-toolbar-btn dashboard-toolbar-btn--secondary"
+                  title="Manage and create widgets in Widgets Center"
+                >
+                  <ExternalLink size={15} />
+                  <span>Widgets Center</span>
+                </Link>
+
+                <button
+                  type="button"
+                  className="dashboard-toolbar-btn dashboard-toolbar-btn--primary"
+                  onClick={handleSaveLayout}
+                  disabled={savingLayout}
+                >
+                  {savingLayout ? (
+                    <LoaderCircle size={15} className="dashboard-spin" />
+                  ) : (
+                    <Save size={15} />
+                  )}
+                  <span>{savingLayout ? "Saving..." : "Save Layout"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="dashboard-toolbar-btn dashboard-toolbar-btn--done"
+                  onClick={() => setIsCustomizing(false)}
+                >
+                  <Check size={15} />
+                  <span>Done</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          <section className="dashboard-customizable-grid">
+            {activeWidgets.map((widget, index) => {
+              const content = renderWidgetByKey(widget);
+              if (!content) return null;
+
+              const isCol2 = widget.colSpan === 2 || widget.width === 2;
+
+              return (
+                <div
+                  key={widget.id || widget.key || widget.widgetId || index}
+                  className={`dashboard-widget-slot ${isCol2 ? "dashboard-widget-slot--col-2" : "dashboard-widget-slot--col-1"} ${isCustomizing ? "dashboard-widget-slot--customizing" : ""} ${draggedIndex === index ? "dashboard-widget-slot--dragging" : ""} ${dragOverIndex === index ? "dashboard-widget-slot--dragover" : ""}`}
+                  draggable={isCustomizing}
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                >
+                  {isCustomizing && (
+                    <div className="dashboard-widget-slot__overlay-bar">
+                      <div className="dashboard-widget-slot__grip" title="Drag card to rearrange">
+                        <GripVertical size={16} />
+                        <span className="dashboard-widget-slot__title">
+                          {widget.title || getWidgetTitle(widget)}
+                        </span>
+                      </div>
+
+                      <div className="dashboard-widget-slot__actions">
+                        <button
+                          type="button"
+                          className="dashboard-slot-btn"
+                          disabled={index === 0}
+                          onClick={() => handleMoveWidget(index, -1)}
+                          title="Move Earlier / Up"
+                        >
+                          <ChevronUp size={15} />
+                        </button>
+
+                        <button
+                          type="button"
+                          className="dashboard-slot-btn"
+                          disabled={index === activeWidgets.length - 1}
+                          onClick={() => handleMoveWidget(index, 1)}
+                          title="Move Later / Down"
+                        >
+                          <ChevronDown size={15} />
+                        </button>
+
+                        <button
+                          type="button"
+                          className="dashboard-slot-btn"
+                          onClick={() => handleToggleColSpan(index)}
+                          title={isCol2 ? "Set Half Width" : "Set Full Width"}
+                        >
+                          {isCol2 ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                        </button>
+
+                        <button
+                          type="button"
+                          className="dashboard-slot-btn dashboard-slot-btn--remove"
+                          onClick={() => handleRemoveWidget(index)}
+                          title="Hide from dashboard"
+                        >
+                          <EyeOff size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="dashboard-widget-slot__body">
+                    {content}
+                  </div>
+                </div>
+              );
+            })}
           </section>
 
-          <section className="dashboard-content-grid">
-            {renderRecentTransactions()}
-            {renderRecentAI()}
-          </section>
-
-          <div className="dashboard-widgets-grid">
-            {renderTasks()}
-            {renderMedicines()}
-            {customWidgets.length > 0 && renderCustomWidgets(true)}
-          </div>
+          {activeWidgets.length === 0 && (
+            <div className="dashboard-empty-widgets">
+              <div className="dashboard-empty-widgets__icon">
+                <LayoutGrid size={32} />
+              </div>
+              <h3>No widgets on your dashboard</h3>
+              <p>You have hidden all dashboard modules. You can restore the default layout or re-add widgets anytime.</p>
+              <button
+                type="button"
+                className="dashboard-toolbar-btn dashboard-toolbar-btn--primary"
+                onClick={handleResetLayout}
+              >
+                <RotateCcw size={15} />
+                <span>Restore Default Layout</span>
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

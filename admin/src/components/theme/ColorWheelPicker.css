@@ -337,3 +337,86 @@
 .dark-mode .cwp-presets-section {
   border-top-color: #334155;
 }
+
+/* ── Live Component Preview Card ── */
+.settings-theme-preview-card,
+.ps-live-preview {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 18px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.settings-theme-preview-card strong,
+.ps-live-preview strong {
+  color: var(--text, #1e293b);
+}
+
+.settings-theme-preview-card .cwp-preview-sub,
+.ps-live-preview span {
+  color: var(--muted, #64748b);
+}
+
+.settings-theme-preview-card .cwp-preview-kpi,
+.ps-live-preview .cwp-preview-kpi {
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--primary-bg-soft, rgba(var(--primary-color-rgb, 255, 101, 0), 0.05));
+  border: 1px solid var(--primary-border, rgba(var(--primary-color-rgb, 255, 101, 0), 0.2));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-theme-preview-card .cwp-preview-progress-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--line, #e2e8f0);
+  overflow: hidden;
+}
+
+/* Dark mode overrides for preview cards */
+.dark-mode .settings-theme-preview-card,
+html.dark-mode .settings-theme-preview-card,
+.dark-mode .ps-live-preview,
+html.dark-mode .ps-live-preview {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+}
+
+.dark-mode .settings-theme-preview-card strong,
+html.dark-mode .settings-theme-preview-card strong,
+.dark-mode .ps-live-preview strong,
+html.dark-mode .ps-live-preview strong {
+  color: #f8fafc !important;
+}
+
+.dark-mode .settings-theme-preview-card .cwp-preview-sub,
+html.dark-mode .settings-theme-preview-card .cwp-preview-sub,
+.dark-mode .ps-live-preview span,
+html.dark-mode .ps-live-preview span {
+  color: #94a3b8 !important;
+}
+
+.dark-mode .settings-theme-preview-card .cwp-preview-kpi,
+html.dark-mode .settings-theme-preview-card .cwp-preview-kpi,
+.dark-mode .ps-live-preview .cwp-preview-kpi,
+html.dark-mode .ps-live-preview .cwp-preview-kpi {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+.dark-mode .settings-theme-preview-card .cwp-preview-progress-track,
+html.dark-mode .settings-theme-preview-card .cwp-preview-progress-track {
+  background: #0f172a !important;
+  border: 1px solid #334155 !important;
+}

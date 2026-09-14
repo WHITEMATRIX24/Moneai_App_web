@@ -120,7 +120,13 @@ api.interceptors.response.use(
       requestUrl.includes("/auth/user/login") ||
       requestUrl.includes("/auth/admin/login");
 
-    const isRefreshRequest = requestUrl.includes("/auth/refresh");
+    if (error.response?.status === 503 && error.response?.data?.code === "MAINTENANCE_MODE") {
+      window.dispatchEvent(
+        new CustomEvent("mone_maintenance_mode", {
+          detail: error.response.data,
+        })
+      );
+    }
 
     if (error.response?.status !== 401 || isLoginRequest || isRefreshRequest) {
       return Promise.reject(error);

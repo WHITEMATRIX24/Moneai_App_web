@@ -1481,27 +1481,11 @@ export default function UserWidgetsPage() {
                     </div>
 
                     <div className="selected-widget-info">
-
                       <h3>
                         {getWidgetName(
                           widget,
                         )}
                       </h3>
-
-                      <p>
-                        {getWidgetDescription(
-                          widget,
-                        )}
-                      </p>
-
-                      <span>
-                        {custom
-                          ? `Custom • ${getCustomTypeLabel(
-                              customType,
-                            )}`
-                          : "Dashboard module"}
-                      </span>
-
                     </div>
 
                     <div className="widget-actions-group">

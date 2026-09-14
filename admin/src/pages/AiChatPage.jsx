@@ -22,7 +22,7 @@ const SUGGESTIONS = [
   "How much have I spent this month?",
   "What tasks are overdue?",
   "Show my budgets",
-  "Create a ₹5,000 food budget",
+  "Create a new food budget",
 ];
 
 export default function AiChatPage() {

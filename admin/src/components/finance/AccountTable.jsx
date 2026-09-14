@@ -1,10 +1,12 @@
 import { Pencil, Archive } from "lucide-react";
+import { useCurrency } from "../../utils/currency.js";
 
 export default function AccountTable({
   accounts,
   onEdit,
   onArchive,
 }) {
+  const { formatCurrency } = useCurrency();
   return (
     <div className="accounts-table-card">
 
@@ -66,7 +68,7 @@ export default function AccountTable({
                 <td>{account.institution || "-"}</td>
 
                 <td className="balance-cell">
-                  ₹ {Number(account.balance).toLocaleString()}
+                  {formatCurrency(account.balance)}
                 </td>
 
                 <td>

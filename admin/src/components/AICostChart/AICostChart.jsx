@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { DollarSign } from "lucide-react";
 import { adminService } from "../../services/admin.service.js";
+import { useCurrency } from "../../utils/currency.js";
 
 // =============================================================================
 // SUBDIVISION 5: AI COST CHART
 // Component: AICostChart
 // =============================================================================
 export default function AICostChart({ data: externalData, loading: externalLoading }) {
+  const { formatCostFromUSD } = useCurrency();
   const [internalData, setInternalData] = useState([]);
   const [internalLoading, setInternalLoading] = useState(true);
 
@@ -131,27 +133,27 @@ export default function AICostChart({ data: externalData, loading: externalLoadi
         <div className="ai-cost-stat">
           <span className="ai-cost-label">Monthly Cumulative</span>
           <strong className="ai-cost-val">
-            ${totalCost.toFixed(2)}
+            {formatCostFromUSD(totalCost)}
           </strong>
           <span className="ai-cost-sub">
-            Budget: ${budget.toFixed(2)} ({Math.min(budgetUsed, 100).toFixed(0)}% used)
+            Budget: {formatCostFromUSD(budget)} ({Math.min(budgetUsed, 100).toFixed(0)}% used)
           </span>
         </div>
 
         <div className="ai-cost-stat">
           <span className="ai-cost-label">Avg Daily Spend</span>
           <strong className="ai-cost-val">
-            ${avgDailySpend.toFixed(2)} / day
+            {formatCostFromUSD(avgDailySpend)} / day
           </strong>
           <span className="ai-cost-sub">
-            Projected end: ${projectedEnd.toFixed(2)}
+            Projected end: {formatCostFromUSD(projectedEnd)}
           </span>
         </div>
 
         <div className="ai-cost-stat">
           <span className="ai-cost-label">Efficiency</span>
           <strong className="ai-cost-val">
-            ${costPer1k.toFixed(4)} / 1k
+            {formatCostFromUSD(costPer1k, { minimumFractionDigits: 4, maximumFractionDigits: 4 })} / 1k
           </strong>
           <span className="ai-cost-sub">
             Based on recorded current-month tokens
@@ -164,7 +166,7 @@ export default function AICostChart({ data: externalData, loading: externalLoadi
           <div>
             <span className="ai-cost-budget-label">Monthly AI Budget</span>
             <div className="ai-cost-budget-value">
-              ${totalCost.toFixed(2)} <span>/ ${budget.toFixed(2)}</span>
+              {formatCostFromUSD(totalCost)} <span>/ {formatCostFromUSD(budget)}</span>
             </div>
           </div>
           <span className="ai-cost-budget-status">
@@ -182,7 +184,7 @@ export default function AICostChart({ data: externalData, loading: externalLoadi
         <div className="ai-cost-budget-footer">
           <span>{budgetUsed.toFixed(1)}% used</span>
           <span>
-            {Math.max(budget - totalCost, 0).toFixed(2)} remaining
+            {formatCostFromUSD(Math.max(budget - totalCost, 0))} remaining
           </span>
         </div>
       </div>
@@ -196,7 +198,7 @@ export default function AICostChart({ data: externalData, loading: externalLoadi
             </span>
           </div>
           <span className="ai-cost-breakdown-total">
-            Total ${totalCost.toFixed(2)}
+            Total {formatCostFromUSD(totalCost)}
           </span>
         </div>
 
@@ -247,7 +249,7 @@ export default function AICostChart({ data: externalData, loading: externalLoadi
                 </div>
 
                 <strong className="provider-amount">
-                  ${item.amount.toFixed(2)}
+                  {formatCostFromUSD(item.amount)}
                 </strong>
 
                 <span className="provider-share">

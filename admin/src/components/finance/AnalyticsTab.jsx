@@ -17,6 +17,7 @@ import {
 import {
   getFinanceAnalytics,
 } from "../../services/financeAnalytics.service.js";
+import { useCurrency } from "../../utils/currency.js";
 
 const COLORS = [
   "#2563eb",
@@ -28,6 +29,7 @@ const COLORS = [
 ];
 
 export default function AnalyticsTab() {
+  const { formatCurrency } = useCurrency();
 
   const [analytics, setAnalytics] =
     useState(null);
@@ -146,7 +148,7 @@ export default function AnalyticsTab() {
 
         <YAxis />
 
-        <Tooltip />
+        <Tooltip formatter={(value) => formatCurrency(value)} />
 
         <Legend />
 
@@ -221,7 +223,7 @@ export default function AnalyticsTab() {
 
           </Pie>
 
-          <Tooltip />
+          <Tooltip formatter={(value) => formatCurrency(value)} />
 
           <Legend />
 
@@ -267,14 +269,7 @@ export default function AnalyticsTab() {
         <td>Top Expense Amount</td>
 
         <td>
-
-          ₹
-          {highestExpense
-            ? Number(
-                highestExpense.value
-              ).toLocaleString()
-            : 0}
-
+          {formatCurrency(highestExpense ? highestExpense.value : 0)}
         </td>
 
       </tr>
@@ -300,12 +295,7 @@ export default function AnalyticsTab() {
         <td>Total Income</td>
 
         <td>
-
-          ₹
-          {Number(
-            summary.income || 0
-          ).toLocaleString()}
-
+          {formatCurrency(summary.income || 0)}
         </td>
 
       </tr>
@@ -315,12 +305,7 @@ export default function AnalyticsTab() {
         <td>Total Expense</td>
 
         <td>
-
-          ₹
-          {Number(
-            summary.expense || 0
-          ).toLocaleString()}
-
+          {formatCurrency(summary.expense || 0)}
         </td>
 
       </tr>
@@ -330,12 +315,7 @@ export default function AnalyticsTab() {
         <td>Total Savings</td>
 
         <td>
-
-          ₹
-          {Number(
-            summary.savings || 0
-          ).toLocaleString()}
-
+          {formatCurrency(summary.savings || 0)}
         </td>
 
       </tr>
@@ -345,12 +325,7 @@ export default function AnalyticsTab() {
         <td>Net Worth</td>
 
         <td>
-
-          ₹
-          {Number(
-            summary.netWorth || 0
-          ).toLocaleString()}
-
+          {formatCurrency(summary.netWorth || 0)}
         </td>
 
       </tr>

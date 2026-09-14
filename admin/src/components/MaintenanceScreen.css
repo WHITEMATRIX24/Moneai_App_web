@@ -1,0 +1,174 @@
+/* src/components/MaintenanceScreen.css */
+
+.maintenance-screen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: radial-gradient(circle at 50% 35%, #1c1512 0%, #0d0b0a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.maintenance-card {
+  max-width: 540px;
+  width: 100%;
+  background: rgba(28, 22, 18, 0.85);
+  border: 1px solid rgba(255, 101, 0, 0.25);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 101, 0, 0.12);
+  border-radius: 24px;
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-sizing: border-box;
+}
+
+.maintenance-icon-halo {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: rgba(255, 101, 0, 0.12);
+  border: 1px solid rgba(255, 101, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff6500;
+  margin-bottom: 24px;
+  box-shadow: 0 0 30px rgba(255, 101, 0, 0.25);
+}
+
+.maintenance-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  background: rgba(255, 101, 0, 0.15);
+  border: 1px solid rgba(255, 101, 0, 0.35);
+  color: #ff8533;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.maintenance-pulsing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff6500;
+  box-shadow: 0 0 10px #ff6500;
+  animation: pulseMaintenanceDot 1.6s infinite ease-in-out;
+}
+
+@keyframes pulseMaintenanceDot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 1;
+  }
+}
+
+.maintenance-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 14px;
+  letter-spacing: -0.015em;
+}
+
+.maintenance-message {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 26px;
+  max-width: 440px;
+}
+
+.maintenance-notice-box {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+  text-align: left;
+  margin-bottom: 32px;
+  box-sizing: border-box;
+}
+
+.maintenance-notice-box svg {
+  color: #ff6500;
+  flex-shrink: 0;
+}
+
+.maintenance-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.maintenance-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.maintenance-btn.btn-outline {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.maintenance-btn.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.maintenance-btn.btn-retry {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.maintenance-btn.btn-retry:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.maintenance-btn.btn-admin {
+  background: #ff6500;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(255, 101, 0, 0.35);
+}
+
+.maintenance-btn.btn-admin:hover {
+  background: #ff7a24;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 101, 0, 0.45);
+}

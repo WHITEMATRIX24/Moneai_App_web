@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import Admin from "../models/Admin.js";
 import User from "../models/User.js";
+import AppConfig from "../models/AppConfig.js";
 
 export async function protect(req, res, next) {
   try {
@@ -62,6 +63,19 @@ export async function protect(req, res, next) {
       if (!user || user.status !== "ACTIVE") {
         return res.status(401).json({
           message: "User account unavailable",
+        });
+      }
+
+      // Check maintenance mode for user tokens (admins bypass maintenance)
+      const configDoc = await AppConfig.findOne({ key: "platform_settings" });
+      const platformSettings = configDoc?.value || {};
+      if (platformSettings.maintenanceMode) {
+        return res.status(503).json({
+          message:
+            platformSettings.maintenanceMessage ||
+            "MONE AI is currently undergoing maintenance. Please try again later.",
+          code: "MAINTENANCE_MODE",
+          maintenanceMode: true,
         });
       }
 
