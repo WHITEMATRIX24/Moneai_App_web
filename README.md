@@ -34,4 +34,4 @@ npm run dev              # Starts frontend dev server on http://localhost:5173
 
 - **User Module**: Finance management (accounts, transactions, budgets, goals, statement import), Health & Vital tracking, Medicine schedules, AI insights, customizable Widgets, and To-Dos.
 - **Admin Console**: User management, AI usage & token analytics, platform configurations, system notification broadcasts, role-based access control (Super Admin, Admin, Support, Analyst).
-- **Backend Services**: Secure JWT authentication with refresh sessions, REST APIs, MongoDB Mongoose models, and bank statement processing.
+- **Backend Services**: Secure JWT authentication with refresh sessions, REST APIs, MongoDB Mongoose models, and bank statement processing.HI
